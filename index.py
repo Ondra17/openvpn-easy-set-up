@@ -1,3 +1,4 @@
+
 import subprocess
 
 def installation():
@@ -18,8 +19,12 @@ def installation():
         print(result.stderr)
 
 
+def dir_struc():
+    subprocess.run(["mkdir", "-p", "/etc/openvpn/easy-rsa/keys"])
 
+def rsa_set_up():
+    subprocess.run(["cp", "-ai", "/usr/share/easy-rsa/3/*", "/etc/openvpn/easy-rsa"])
 
 installation()
-
-
+dir_struc()
+rsa_set_up()
