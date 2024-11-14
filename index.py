@@ -58,7 +58,7 @@ rsa_set_up()
 
 #----------------------------------------------------------------------------------------------------------------------#
 
-
+"""
 import glob
 import subprocess
 import re
@@ -104,7 +104,7 @@ def rsa_set_up():
 
     subprocess.run(["cp", "/opt/easy-rsa/easyrsa3/vars.example", "/etc/openvpn/easy-rsa/vars.example"])
     subprocess.run(["mv", "/etc/openvpn/easy-rsa/vars.example", "/etc/openvpn/easy-rsa/vars"])
-"""
+
 def vars_rewrite(rsa_country, rsa_province, rsa_city, rsa_organization, rsa_email):
 
     up_country=rsa_country.upper()
@@ -125,13 +125,13 @@ def vars_rewrite(rsa_country, rsa_province, rsa_city, rsa_organization, rsa_emai
             f.seek(0)
             f.write(data)
             f.truncate()
-"""
+
 
 
 installation()
 dir_struc()
 rsa_set_up()
-"""
+
 rsa_country=input(str("Country:"))
 rsa_province=input(str("Province:"))
 rsa_city=input(str("City:"))
