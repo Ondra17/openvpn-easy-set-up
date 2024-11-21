@@ -62,6 +62,8 @@ rsa_set_up()
 import glob
 import subprocess
 import re
+import os
+import sys
 
 #Do you want to update DNF repository
 
@@ -85,15 +87,29 @@ def installation():
 
 def dir_struc():
     subprocess.run(["mkdir", "-p", "/etc/openvpn/easy-rsa/keys"])
+    checkKeys = "/etc/openvpn/easy-rsa/keys"
+    if os.path.exists(checkKeys):
+        print(f"The path '{checkKeys}' were created successfully")
+    else:
+        print(f"The path '{checkKeys}' were not created successfully")
+        sys.exit(1)
 
     #for EasyRSA repository
     subprocess.run(["mkdir", "-p", "/opt/easy-rsa"])
+    checkGitInstallEasy = "/opt/easy-rsa"
+    if os.path.exists(checkGitInstallEasy):
+        print(f"The path '{checkGitInstallEasy}' were created successfully")
+    else:
+        print(f"The path '{checkGitInstallEasy}' were not created successfully")
+        sys.exit(1)
+
 
 def rsa_set_up():
 
     rep_easy_rsa = glob.glob("/opt/easy-rsa/*")
     all_files = glob.glob("/usr/share/easy-rsa/3/*")
     subprocess.run(["cp", "-ai"] + all_files + ["/etc/openvpn/easy-rsa/"])
+    #cp /usr/share/easy-rsa/3/* /etc/openvpn/easy-rsa/
 
 
     if rep_easy_rsa != None:
@@ -131,6 +147,8 @@ def vars_rewrite(rsa_country, rsa_province, rsa_city, rsa_organization, rsa_emai
 installation()
 dir_struc()
 rsa_set_up()
+
+
 
 rsa_country=input(str("Country:"))
 rsa_province=input(str("Province:"))
