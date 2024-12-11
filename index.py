@@ -135,7 +135,7 @@ def installation():
 
 
 
-
+    """
     checkOpenVpn = subprocess.run(["openvpn", "--version"], capture_output=True, text=True)
     if checkOpenVpn.returncode == 0:
         print("################################################")
@@ -146,23 +146,24 @@ def installation():
         #print(result.stdout)
     else:
         print("OpenVPN installation failed.")
-        #print(result.stderr)
+        #print(result.stderr) 
+    """
 
 def check_easyrsa(easyrsa_path):
     try:
         if not os.path.isfile(easyrsa_path):
             print(f"Easy-RSA script not found at {easyrsa_path}. Please check your installation.")
-            sys.exit(1)  # Exit script if Easy-RSA is missing
+            sys.exit(1)
 
         result = subprocess.run([easyrsa_path, "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if result.returncode == 0:
-            print(f"Easy-RSA is installed and available:\n{result.stdout.strip()}")
+            print(f"Easy-RSA is installed and available")
         else:
             print(f"Easy-RSA command failed:\n{result.stderr.strip()}")
-            sys.exit(1)  # Exit script if the command fails
+            sys.exit(1) 
     except Exception as e:
         print(f"An error occurred while checking Easy-RSA: {e}")
-        sys.exit(1)  # Exit script if an unexpected error occurs
+        sys.exit(1)  
 
 def check_openvpn():
     try:
@@ -171,13 +172,13 @@ def check_openvpn():
             print(f"OpenVPN is installed")
         else:
             print(f"OpenVPN command failed")
-            sys.exit(1)  # Exit script if the command fails
+            sys.exit(1)
     except FileNotFoundError:
         print("OpenVPN is not installed or not in the PATH.")
-        sys.exit(1)  # Exit script if OpenVPN is missing
+        sys.exit(1)
     except Exception as e:
         print(f"An error occurred while checking OpenVPN: {e}")
-        sys.exit(1)  # Exit script if an unexpected error occurs
+        sys.exit(1)  
 
 
 def dir_struc():
@@ -258,23 +259,30 @@ def CA_build():
     os.system('./easyrsa init-pki')
 
 
-installation()
-easyrsa_path = "/usr/share/easy-rsa/3/easyrsa"
-check_easyrsa(easyrsa_path)
-check_openvpn()
-print("Both Easy-RSA and OpenVPN are installed and functioning correctly.")
-#dir_struc()
-#rsa_set_up()
-"""
-rsa_country=input(str("Country:"))
-rsa_province=input(str("Province:"))
-rsa_city=input(str("City:"))
-rsa_organization=input(str("Organization:"))
-rsa_email=input(str("email:"))
-rsa_ou=input(str("Organization Unit:"))
-"""
-#vars_rewrite(rsa_country, rsa_province, rsa_city, rsa_organization, rsa_email, rsa_ou)
-#CA_build()
+if os.geteuid() == 0:
+
+
+    installation()
+    easyrsa_path = "/usr/share/easy-rsa/3/easyrsa"
+    check_easyrsa(easyrsa_path)
+    check_openvpn()
+    print("Both Easy-RSA and OpenVPN are installed and functioning correctly.")
+    dir_struc()
+    #rsa_set_up()
+    
+    rsa_country=input(str("Country:"))
+    rsa_province=input(str("Province:"))
+    rsa_city=input(str("City:"))
+    rsa_organization=input(str("Organization:"))
+    rsa_email=input(str("email:"))
+    rsa_ou=input(str("Organization Unit:"))
+    
+else:
+    print("ERROR: You need sudo rights!")
+    #vars_rewrite(rsa_country, rsa_province, rsa_city, rsa_organization, rsa_email, rsa_ou)
+    #CA_build()
+
+
 
 
 
