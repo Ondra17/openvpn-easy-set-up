@@ -257,8 +257,21 @@ def CA_build():
     CA_dir = '/etc/openvpn/easy-rsa'
     os.chdir(CA_dir)
     os.system('./easyrsa init-pki')
+    os.system('./easyrsa build-ca nopass')
 
 
+""" dodelat
+def CA_check():
+    try:
+        if result.returncode == 0:
+            print(f"OpenVPN is installed")
+        else:
+            print(f"OpenVPN command failed")
+            sys.exit(1)
+    except FileNotFoundError:
+        print("OpenVPN is not installed or not in the PATH.")
+        sys.exit(1)
+"""
 if os.geteuid() == 0:
 
 
@@ -268,7 +281,7 @@ if os.geteuid() == 0:
     check_openvpn()
     print("Both Easy-RSA and OpenVPN are installed and functioning correctly.")
     dir_struc()
-    #rsa_set_up()
+    rsa_set_up()
     
     rsa_country=input(str("Country:"))
     rsa_province=input(str("Province:"))
@@ -277,10 +290,16 @@ if os.geteuid() == 0:
     rsa_email=input(str("email:"))
     rsa_ou=input(str("Organization Unit:"))
     
+    vars_rewrite(rsa_country, rsa_province, rsa_city, rsa_organization, rsa_email, rsa_ou)
+    CA_build()
+
 else:
     print("ERROR: You need sudo rights!")
-    #vars_rewrite(rsa_country, rsa_province, rsa_city, rsa_organization, rsa_email, rsa_ou)
-    #CA_build()
+    sys.exit(1)
+
+
+
+
 
 
 
