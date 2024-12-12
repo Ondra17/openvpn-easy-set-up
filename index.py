@@ -165,6 +165,9 @@ def server_cert_gen(CA_dir, serverName):
     os.system(f'./easyrsa gen-req {serverName} nopass')
     os.system(f'./easyrsa sign-req server {serverName}')
 
+def openVpnConf():
+    os.system("cp /usr/share/doc/openvpn/sample/sample-config-files/server.conf /etc/openvpn")
+
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------     Vecicky        -----------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------------------------------------
@@ -197,6 +200,7 @@ if os.geteuid() == 0:
     vars_rewrite(rsa_country, rsa_province, rsa_city, rsa_organization, rsa_email, rsa_ou)
     CA_build(CA_dir)
     server_cert_gen(CA_dir, serverName)
+    #openVpnConf()
 
 else:
     print("ERROR: You need sudo rights!")
