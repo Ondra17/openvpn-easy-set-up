@@ -135,7 +135,7 @@ def vars_rewrite():
                 file.write(varsTextOrg)
                 file.write(varsTextEmail)
                 file.write(varsTextOU)
-                file.write("done")
+                file.write("#done")
             print(f"Text added to {rsaVarsFile}")
         except FileNotFoundError:
             print(f"Error: File '{rsaVarsFile}' does not exist.")
@@ -187,22 +187,34 @@ def server_cert_gen(CA_dir, serverName):
     os.chdir(CA_dir)
     os.system(f'./easyrsa gen-req {serverName} nopass')
     os.system(f'./easyrsa sign-req server {serverName}')
-    os.system('./easyrsa gen-dh')
+
+    if  os.path.exists("/etc/openvpn/easy-rsa/pki/dh.pem"):
+        pass
+    else:
+        os.system('./easyrsa gen-dh')
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def log_create():
 
+    logFir = False
+    logSec = False
+
+    if os.path.isfile('/var/log/openvpn/'):
+        pass
+    else:
+        os.system('mkdir -p /var/log/openvpn/')
+
     if os.path.isfile('/var/log/openvpn/status.log'):
         pass
     else:
-        os.system('mkdir -p /var/log/openvpn/status.log')
+        os.system('touch /var/log/openvpn/status.log')
         logFir = True
 
     if os.path.isfile('/var/log/openvpn/ovpn.log'):
         pass
     else:
-        os.system('mkdir /var/log/openvpn/ovpn.log')
+        os.system('touch /var/log/openvpn/ovpn.log')
         logSec = True
 
     if logFir == True and logSec == True:
@@ -215,6 +227,7 @@ def openVpnConf():
     os.system("touch /etc/openvpn/server.conf")
     with open("/etc/openvpn/server.conf", "a") as file:
         file.write("mode server")
+        file.write("dh /etc/openvpn/easy-rsa/pki/dh.pem")
         file.write("keepalive 10 120")
         file.write("status /var/log/openvpn/status.log")
         file.write("log /var/log/openvpn/ovpn.log")
@@ -243,11 +256,13 @@ if os.geteuid() == 0:
             if 'done' in content:
                 pass
             else:
-                vars_rewrite()
                 rsa_set_up()
+                vars_rewrite()
+                
     else:
-        vars_rewrite()
         rsa_set_up()
+        vars_rewrite()
+        
 
     if os.path.exists("/etc/openvpn/easy-rsa/pki/ca.crt"): 
         pass
