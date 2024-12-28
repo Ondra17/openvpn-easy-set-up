@@ -65,47 +65,51 @@ def check_openvpn():
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def dir_struc():
-    subprocess.run(["mkdir", "-p", "/etc/openvpn/easy-rsa/keys"])
-    checkKeys = "/etc/openvpn/easy-rsa/keys"
-    if os.path.exists(checkKeys):
-        print(f"The path '{checkKeys}' were created successfully")
+    if  os.path.exists("/etc/openvpn/easy-rsa/keys"):
+        pass
     else:
-        print(f"The path '{checkKeys}' were not created successfully")
-        sys.exit(1)
+        subprocess.run(["mkdir", "-p", "/etc/openvpn/easy-rsa/keys"])
+        checkKeys = "/etc/openvpn/easy-rsa/keys"
+        if os.path.exists(checkKeys):
+            print(f"The path '{checkKeys}' were created successfully")
+        else:
+            print(f"The path '{checkKeys}' were not created successfully")
+            sys.exit(1)
 
     #for EasyRSA repository
-    subprocess.run(["mkdir", "-p", "/opt/easy-rsa"])
     checkGitInstallEasy = "/opt/easy-rsa"
-    if os.path.exists(checkGitInstallEasy):
-        print(f"The path '{checkGitInstallEasy}' were created successfully")
+    if  os.path.exists(checkGitInstallEasy):
+        pass
     else:
-        print(f"The path '{checkGitInstallEasy}' were not created successfully")
-        sys.exit(1)
+        subprocess.run(["mkdir", "-p", "/opt/easy-rsa"])
+        if os.path.exists(checkGitInstallEasy):
+            print(f"The path '{checkGitInstallEasy}' were created successfully")
+        else:
+            print(f"The path '{checkGitInstallEasy}' were not created successfully")
+            sys.exit(1)
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
+"""
+def rsa_qes():
+    rsa_country=input(str("Country:"))
+    rsa_province=input(str("Province:"))
+    rsa_city=input(str("City:"))
+    rsa_organization=input(str("Organization:"))
+    rsa_email=input(str("email:"))
+    rsa_ou=input(str("Organization Unit:"))
 
-def rsa_set_up():
-
-    rep_easy_rsa = glob.glob("/opt/easy-rsa/*")
-    all_files = glob.glob("/usr/share/easy-rsa/3/*")
-    subprocess.run(["cp", "-ai"] + all_files + ["/etc/openvpn/easy-rsa/"])
-    #cp /usr/share/easy-rsa/3/* /etc/openvpn/easy-rsa/
-
-
-    if rep_easy_rsa != None:
-        subprocess.run(["rm", "-rf", "/opt/easy-rsa"])
-        subprocess.run(["git", "clone", "https://github.com/OpenVPN/easy-rsa.git", "/opt/easy-rsa/"])
-    else:
-        subprocess.run(["git", "clone", "https://github.com/OpenVPN/easy-rsa.git", "/opt/easy-rsa/"])
-
-    subprocess.run(["cp", "/opt/easy-rsa/easyrsa3/vars.example", "/etc/openvpn/easy-rsa/vars.example"])
-    subprocess.run(["mv", "/etc/openvpn/easy-rsa/vars.example", "/etc/openvpn/easy-rsa/vars"])
-
-
+    return rsa_city, rsa_country, rsa_email, rsa_organization, rsa_province, rsa_ou
+"""
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
+def vars_rewrite():
 
-def vars_rewrite(rsa_country, rsa_province, rsa_city, rsa_organization, rsa_email, rsa_ou):
+    rsa_country=input(str("Country:"))
+    rsa_province=input(str("Province:"))
+    rsa_city=input(str("City:"))
+    rsa_organization=input(str("Organization:"))
+    rsa_email=input(str("email:"))
+    rsa_ou=input(str("Organization Unit:"))
 
     up_country=rsa_country.upper()
 
@@ -114,7 +118,7 @@ def vars_rewrite(rsa_country, rsa_province, rsa_city, rsa_organization, rsa_emai
         rsaVarsFile = "/etc/openvpn/easy-rsa/vars"
 
         # Text to append
-        varsTextCounrty = f'set_var EASYRSA_REQ_COUNTRY	"{rsa_country}"\n'
+        varsTextCounrty = f'set_var EASYRSA_REQ_COUNTRY	"{up_country}"\n'
         varsTextProvince = f'set_var EASYRSA_REQ_PROVINCE	"{rsa_province}"\n'
         varsTextCity = f'set_var EASYRSA_REQ_CITY	"{rsa_city}"\n'
         varsTextOrg = f'set_var EASYRSA_REQ_ORG	  "{rsa_organization}"\n'
@@ -142,6 +146,24 @@ def vars_rewrite(rsa_country, rsa_province, rsa_city, rsa_organization, rsa_emai
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
+def rsa_set_up():
+
+    rep_easy_rsa = glob.glob("/opt/easy-rsa/*")
+    all_files = glob.glob("/usr/share/easy-rsa/3/*")
+    subprocess.run(["cp", "-ai"] + all_files + ["/etc/openvpn/easy-rsa/"])
+    #cp /usr/share/easy-rsa/3/* /etc/openvpn/easy-rsa/
+
+
+    if rep_easy_rsa != None:
+        subprocess.run(["rm", "-rf", "/opt/easy-rsa"])
+        subprocess.run(["git", "clone", "https://github.com/OpenVPN/easy-rsa.git", "/opt/easy-rsa/"])
+    else:
+        subprocess.run(["git", "clone", "https://github.com/OpenVPN/easy-rsa.git", "/opt/easy-rsa/"])
+
+    subprocess.run(["cp", "/opt/easy-rsa/easyrsa3/vars.example", "/etc/openvpn/easy-rsa/vars.example"])
+    subprocess.run(["mv", "/etc/openvpn/easy-rsa/vars.example", "/etc/openvpn/easy-rsa/vars"])
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------
 def CA_build(CA_dir):
     CA_dir = '/etc/openvpn/easy-rsa'
     os.chdir(CA_dir)
@@ -167,25 +189,37 @@ def server_cert_gen(CA_dir, serverName):
     os.system(f'./easyrsa sign-req server {serverName}')
     os.system('./easyrsa gen-dh')
 
-def openVpnConf():
-    os.system("cp /usr/share/doc/openvpn/sample/sample-config-files/server.conf /etc/openvpn")
-
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def log_create():
-    os.system('mkdir -p /var/log/openvpn/status.log')
-    os.system('mkdir /var/log/openvpn/ovpn.log')
 
+    if os.path.isfile('/var/log/openvpn/status.log'):
+        pass
+    else:
+        os.system('mkdir -p /var/log/openvpn/status.log')
+        logFir = True
 
-def rsa_qes():
-    rsa_country=input(str("Country:"))
-    rsa_province=input(str("Province:"))
-    rsa_city=input(str("City:"))
-    rsa_organization=input(str("Organization:"))
-    rsa_email=input(str("email:"))
-    rsa_ou=input(str("Organization Unit:"))
+    if os.path.isfile('/var/log/openvpn/ovpn.log'):
+        pass
+    else:
+        os.system('mkdir /var/log/openvpn/ovpn.log')
+        logSec = True
 
-    return rsa_city, rsa_country, rsa_email, rsa_organization, rsa_province, rsa_ou
+    if logFir == True and logSec == True:
+        print("Logs files were created successfully")
+    else:
+        print("Logs files are already created")
+
+def openVpnConf():
+
+    os.system("touch /etc/openvpn/server.conf")
+    with open("/etc/openvpn/server.conf", "a") as file:
+        file.write("mode server")
+        file.write("keepalive 10 120")
+        file.write("status /var/log/openvpn/status.log")
+        file.write("log /var/log/openvpn/ovpn.log")
+        #os.system("cp /usr/share/doc/openvpn/sample/sample-config-files/server.conf /etc/openvpn")
+
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------     Vecicky        -----------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------------------------------------
@@ -202,30 +236,24 @@ if os.geteuid() == 0:
     check_openvpn()
     print("Both Easy-RSA and OpenVPN are installed and functioning correctly.")
     dir_struc()
-    """
-    rsa_country=input(str("Country:"))
-    rsa_province=input(str("Province:"))
-    rsa_city=input(str("City:"))
-    rsa_organization=input(str("Organization:"))
-    rsa_email=input(str("email:"))
-    rsa_ou=input(str("Organization Unit:"))
-    """
+  
     if os.path.isfile('/etc/openvpn/easy-rsa/vars'):
         with open('/etc/openvpn/easy-rsa/vars', 'r') as varsFile:
             content = varsFile.read()
             if 'done' in content:
                 pass
             else:
+                vars_rewrite()
                 rsa_set_up()
-                city, country, email, organization, province, ou = rsa_qes()
-                vars_rewrite(country, province, city, organization, email, ou)
     else:
+        vars_rewrite()
         rsa_set_up()
-        city, country, email, organization, province, ou = rsa_qes()
-        vars_rewrite(country, province, city, organization, email, ou)
 
-    CA_build(CA_dir)
-
+    if os.path.exists("/etc/openvpn/easy-rsa/pki/ca.crt"): 
+        pass
+    else:   
+        CA_build(CA_dir)
+    
     while run == True:
         if serverName == None:
             serverName=input("Server Name:")
