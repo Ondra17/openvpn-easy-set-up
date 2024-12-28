@@ -131,6 +131,7 @@ def vars_rewrite(rsa_country, rsa_province, rsa_city, rsa_organization, rsa_emai
                 file.write(varsTextOrg)
                 file.write(varsTextEmail)
                 file.write(varsTextOU)
+                file.write("done")
             print(f"Text added to {rsaVarsFile}")
         except FileNotFoundError:
             print(f"Error: File '{rsaVarsFile}' does not exist.")
@@ -170,31 +171,59 @@ def openVpnConf():
     os.system("cp /usr/share/doc/openvpn/sample/sample-config-files/server.conf /etc/openvpn")
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
-#------------------------------------------     Vecicky        -----------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------------------------------------------------------------------------
 
-if os.geteuid() == 0:
-    run = True
-    serverName = None
-    installation()
-    easyrsa_path = "/usr/share/easy-rsa/3/easyrsa"
-    check_easyrsa(easyrsa_path)
-    check_openvpn()
-    print("Both Easy-RSA and OpenVPN are installed and functioning correctly.")
-    dir_struc()
-    rsa_set_up()
-    
+def log_create():
+    os.system('mkdir -p /var/log/openvpn/status.log')
+    os.system('mkdir /var/log/openvpn/ovpn.log')
+
+
+def rsa_qes():
     rsa_country=input(str("Country:"))
     rsa_province=input(str("Province:"))
     rsa_city=input(str("City:"))
     rsa_organization=input(str("Organization:"))
     rsa_email=input(str("email:"))
     rsa_ou=input(str("Organization Unit:"))
-    
+
+    return rsa_city, rsa_country, rsa_email, rsa_organization, rsa_province, rsa_ou
+#-------------------------------------------------------------------------------------------------------------------------------------------------
+#------------------------------------------     Vecicky        -----------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------------------------------------------
+
+if os.geteuid() == 0:
+
+    run = True
+    serverName = None
     CA_dir = '/etc/openvpn/easy-rsa'
+    easyrsa_path = "/usr/share/easy-rsa/3/easyrsa"
 
+    installation()
+    check_easyrsa(easyrsa_path)
+    check_openvpn()
+    print("Both Easy-RSA and OpenVPN are installed and functioning correctly.")
+    dir_struc()
+    """
+    rsa_country=input(str("Country:"))
+    rsa_province=input(str("Province:"))
+    rsa_city=input(str("City:"))
+    rsa_organization=input(str("Organization:"))
+    rsa_email=input(str("email:"))
+    rsa_ou=input(str("Organization Unit:"))
+    """
+    if os.path.isfile('/etc/openvpn/easy-rsa/vars'):
+        with open('/etc/openvpn/easy-rsa/vars', 'r') as varsFile:
+            content = varsFile.read()
+            if 'done' in content:
+                pass
+            else:
+                rsa_set_up()
+                city, country, email, organization, province, ou = rsa_qes()
+                vars_rewrite(country, province, city, organization, email, ou)
+    else:
+        rsa_set_up()
+        city, country, email, organization, province, ou = rsa_qes()
+        vars_rewrite(country, province, city, organization, email, ou)
 
-    vars_rewrite(rsa_country, rsa_province, rsa_city, rsa_organization, rsa_email, rsa_ou)
     CA_build(CA_dir)
 
     while run == True:
@@ -204,7 +233,8 @@ if os.geteuid() == 0:
             run = False
     
     server_cert_gen(CA_dir, serverName)
-    #openVpnConf()
+    log_create()
+    openVpnConf()
 
 else:
     print("ERROR: You need sudo rights!")
