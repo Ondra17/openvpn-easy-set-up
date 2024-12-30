@@ -3,6 +3,7 @@ import subprocess
 import re
 import os
 import sys
+import ipaddress
 
 #Do you want to update DNF repository
 
@@ -231,6 +232,10 @@ def openVpnConf():
     key_dir = "/etc/openvp/easy-rsa/pki/private/"
     key_file = None
     address = None
+    mask = None
+    check = None
+    network = None
+    networkCheck = False
     
     port = input(int("Port number?(default openvpn 1194)"))
     if port == None:
@@ -245,7 +250,7 @@ def openVpnConf():
         protocol = "UDP"
     else:
         pass
-    
+
     device = input(("device? (tun or tap)"))
     if device == None:
         device = "tun0"
@@ -253,6 +258,15 @@ def openVpnConf():
         protocol = "tun0"
     else:
         pass
+
+    while networkCheck == False:
+        try:
+            network = input("Network (format: 'address mask'): ")
+            address, mask = network.split()
+            ipaddress.IPv4Network(f"{address}/{mask}", strict=False)
+            networkCheck = True
+        except ValueError:
+            print("Wrong format! Please enter in 'address mask' format.")
     
     for root, _, files in os.walk(cert_dir):
         for file in files:
@@ -278,14 +292,15 @@ def openVpnConf():
         file.write(f"port {port}")
         file.write(f"proto {protocol}")
         file.write(f"proto {device}")
-        #file.write(f"dev {dev}")
+        file.write(f"dev {device}")
         file.write("ca /etc/openvpn/easy-rsa/pki/ca.crt")
         file.write(f"cert {cert_file}")
         file.write(f"key {key_file}")
         file.write("dh /etc/openvpn/easy-rsa/pki/dh.pem")
+        file.write(f"server {network}")
         file.write("keepalive 10 120")
-        file.write("status /var/log/openvpn/status.log")
-        file.write("log /var/log/openvpn/ovpn.log")
+        #file.write("status /var/log/openvpn/status.log")
+        #file.write("log /var/log/openvpn/ovpn.log")
         #os.system("cp /usr/share/doc/openvpn/sample/sample-config-files/server.conf /etc/openvpn")
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
