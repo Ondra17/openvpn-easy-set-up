@@ -223,10 +223,65 @@ def log_create():
         print("Logs files are already created")
 
 def openVpnConf():
+    port = None
+    protocol = None
+    device = None
+    cert_dir = "/etc/openvpn/easy-rsa/pki/issued/"
+    cert_file = None
+    key_dir = "/etc/openvp/easy-rsa/pki/private/"
+    key_file = None
+    address = None
+    
+    port = input(int("Port number?(default openvpn 1194)"))
+    if port == None:
+        port = "1194"
+    else:
+        pass
+
+    protocol = input(("protocol? (TCP or UDP)"))
+    if protocol == None:
+        protocol = "UDP"
+    elif protocol != "UDP" or protocol != "udp" or protocol != "TCP" or protocol != "tcp":
+        protocol = "UDP"
+    else:
+        pass
+    
+    device = input(("device? (tun or tap)"))
+    if device == None:
+        device = "tun0"
+    elif protocol != "TUN" or protocol != "tun" or protocol != "TAP" or protocol != "tap":
+        protocol = "tun0"
+    else:
+        pass
+    
+    for root, _, files in os.walk(cert_dir):
+        for file in files:
+            if file.endswith(".crt"):
+                cert_file = os.path.join(root, file)
+                break  # Nalezený certifikát, ukončíme hledání
+    
+    for root, _, files in os.walk(key_dir):
+        for file in files:
+            if file == "ca.key":
+                continue
+            if file.endswith(".key"):
+                key_file = os.path.join(root, file)
+                break 
+    
+    device = input(int("device? (tun or tap)"))
+    if device == None:
+        device = "tun"            
 
     os.system("touch /etc/openvpn/server.conf")
     with open("/etc/openvpn/server.conf", "a") as file:
         file.write("mode server")
+        file.write(f"port {port}")
+        file.write(f"proto {protocol}")
+        file.write(f"proto {device}")
+        #file.write(f"dev {dev}")
+        file.write("ca /etc/openvpn/easy-rsa/pki/ca.crt")
+        file.write(f"cert {cert_file}")
+        file.write(f"key {key_file}")
         file.write("dh /etc/openvpn/easy-rsa/pki/dh.pem")
         file.write("keepalive 10 120")
         file.write("status /var/log/openvpn/status.log")
