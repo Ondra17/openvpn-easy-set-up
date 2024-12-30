@@ -185,6 +185,7 @@ def CA_check():
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def server_cert_gen(CA_dir, serverName):
+
     os.chdir(CA_dir)
     os.system(f'./easyrsa gen-req {serverName} nopass')
     os.system(f'./easyrsa sign-req server {serverName}')
@@ -237,7 +238,7 @@ def openVpnConf():
     network = None
     networkCheck = False
     
-    port = input(int("Port number?(default openvpn 1194)"))
+    port = int(input("Port number?(default openvpn 1194)"))
     if port == None:
         port = "1194"
     else:
@@ -268,6 +269,7 @@ def openVpnConf():
         except ValueError:
             print("Wrong format! Please enter in 'address mask' format.")
     
+    """
     for root, _, files in os.walk(cert_dir):
         for file in files:
             if file.endswith(".crt"):
@@ -281,6 +283,7 @@ def openVpnConf():
             if file.endswith(".key"):
                 key_file = os.path.join(root, file)
                 break 
+    """
     
     device = input(int("device? (tun or tap)"))
     if device == None:
@@ -294,8 +297,8 @@ def openVpnConf():
         file.write(f"proto {device}")
         file.write(f"dev {device}")
         file.write("ca /etc/openvpn/easy-rsa/pki/ca.crt")
-        file.write(f"cert {cert_file}")
-        file.write(f"key {key_file}")
+        file.write(f"cert /etc/openvpn/easy-rsa/pki/issued/{serverName}.crt")
+        file.write(f"key /etc/openvpn/easy-rsa/pki/private/{serverName}.key")
         file.write("dh /etc/openvpn/easy-rsa/pki/dh.pem")
         file.write(f"server {network}")
         file.write("keepalive 10 120")
@@ -308,7 +311,6 @@ def openVpnConf():
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 if os.geteuid() == 0:
-
     run = True
     serverName = None
     CA_dir = '/etc/openvpn/easy-rsa'
@@ -339,6 +341,7 @@ if os.geteuid() == 0:
     else:   
         CA_build(CA_dir)
     
+    
     while run == True:
         if serverName == None:
             serverName=input("Server Name:")
@@ -347,7 +350,7 @@ if os.geteuid() == 0:
     
     server_cert_gen(CA_dir, serverName)
     log_create()
-    openVpnConf()
+    openVpnConf(serverName)
 
 else:
     print("ERROR: You need sudo rights!")
