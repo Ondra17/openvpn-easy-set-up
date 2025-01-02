@@ -240,27 +240,38 @@ def openVpnConf(serverName):
     network = None
     networkCheck = False
     
-    port = int(input("Port number?(default openvpn 1194)"))
-    if port == None:
-        port = "1194"
-    else:
-        pass
+    portCheck = True
+    while portCheck == True:
+        port = int(input("Port number?(default openvpn 1194)"))
+        if port == None:
+            port = "1194"
+            portCheck = False
+        else:
+            pass
 
-    protocol = input("protocol? (TCP or UDP)")
-    if protocol == None:
-        protocol = "udp6"
-    elif protocol != "UDP" or protocol != "udp" or protocol != "TCP" or protocol != "tcp":
-        protocol = "udp6"
-    else:
-        pass
-
-    device = input("device? (tun or tap)")
-    if device == None:
-        device = "tun0"
-    elif protocol != "TUN" or protocol != "tun" or protocol != "TAP" or protocol != "tap":
-        protocol = "tun0"
-    else:
-        pass
+    protocolCheck = True
+    while protocolCheck == True:
+        protocol = input("protocol? (TCP or UDP)")
+        if protocol == None:
+            protocol = "udp6"
+            protocolCheck = False
+        elif protocol != "UDP" or protocol != "udp" or protocol != "TCP" or protocol != "tcp":
+            protocol = "udp6"
+            protocolCheck = False
+        else:
+            pass
+    
+    deviceCheck = True
+    while deviceCheck == True:
+        device = input("device? (tun or tap)")
+        if device == None:
+            device = "tun0"
+            deviceCheck = False
+        elif protocol != "TUN" or protocol != "tun" or protocol != "TAP" or protocol != "tap":
+            protocol = "tun0"
+            deviceCheck = False
+        else:
+            pass
 
     while networkCheck == False:
         try:
@@ -270,22 +281,7 @@ def openVpnConf(serverName):
             networkCheck = True
         except ValueError:
             print("Wrong format! Please enter in 'address mask' format.")
-    
-    """
-    for root, _, files in os.walk(cert_dir):
-        for file in files:
-            if file.endswith(".crt"):
-                cert_file = os.path.join(root, file)
-                break  # Nalezený certifikát, ukončíme hledání
-    
-    for root, _, files in os.walk(key_dir):
-        for file in files:
-            if file == "ca.key":
-                continue
-            if file.endswith(".key"):
-                key_file = os.path.join(root, file)
-                break 
-    """      
+      
 
     os.system("touch /etc/openvpn/server.conf")
     with open("/etc/openvpn/server.conf", "a") as file:
@@ -300,6 +296,9 @@ def openVpnConf(serverName):
         file.write("dh /etc/openvpn/easy-rsa/pki/dh.pem\n")
         file.write(f"server {network}\n")
         file.write("keepalive 10 120\n")
+        file.write("persist-tun\n")
+        file.write("persist-key\n")
+        file.write("verb 3")
         file.write("status /var/log/openvpn/status.log")
         file.write("log /var/log/openvpn/ovpn.log")
         #os.system("cp /usr/share/doc/openvpn/sample/sample-config-files/server.conf /etc/openvpn")
@@ -319,27 +318,38 @@ def easyConf(serverName):
     network = None
     networkCheck = False
 
-    port = int(input("Port number?(default openvpn 1194)"))
-    if port == None:
-        port = "1194"
-    else:
-        pass
+    portCheck = True
+    while portCheck == True:
+        port = int(input("Port number?(default openvpn 1194)"))
+        if port == None:
+            port = "1194"
+            portCheck = False
+        else:
+            pass
 
-    protocol = input("protocol? (TCP or UDP)")
-    if protocol == None:
-        protocol = "udp6"
-    elif protocol != "UDP" or protocol != "udp" or protocol != "TCP" or protocol != "tcp":
-        protocol = "udp6"
-    else:
-        pass
-
-    device = input("device? (tun or tap)")
-    if device == None:
-        device = "tun0"
-    elif protocol != "TUN" or protocol != "tun" or protocol != "TAP" or protocol != "tap":
-        protocol = "tun0"
-    else:
-        pass
+    protocolCheck = True
+    while protocolCheck == True:
+        protocol = input("protocol? (TCP or UDP)")
+        if protocol == None:
+            protocol = "udp6"
+            protocolCheck = False
+        elif protocol != "UDP" or protocol != "udp" or protocol != "TCP" or protocol != "tcp":
+            protocol = "udp6"
+            protocolCheck = False
+        else:
+            pass
+    
+    deviceCheck = True
+    while deviceCheck == True:
+        device = input("device? (tun or tap)")
+        if device == None:
+            device = "tun0"
+            deviceCheck = False
+        elif protocol != "TUN" or protocol != "tun" or protocol != "TAP" or protocol != "tap":
+            protocol = "tun0"
+            deviceCheck = False
+        else:
+            pass
 
     while networkCheck == False:
         try:
@@ -362,6 +372,9 @@ def easyConf(serverName):
         file.write(f"key /etc/openvpn/easy-rsa/pki/private/{serverName}.key\n")
         file.write("dh /etc/openvpn/easy-rsa/pki/dh.pem\n")
         file.write(f"server {network}\n")
+        file.write("persist-tun\n")
+        file.write("persist-key\n")
+        file.write("verb 3\n")
         file.write("status /var/log/openvpn/status.log")
         file.write("log /var/log/openvpn/ovpn.log")
 
@@ -380,27 +393,38 @@ def advancedConf(serverName):
     network = None
     networkCheck = False
 
-    port = int(input("Port number?(default openvpn 1194)"))
-    if port == None:
-        port = "1194"
-    else:
-        pass
+    portCheck = True
+    while portCheck == True:
+        port = int(input("Port number?(default openvpn 1194)"))
+        if port == None:
+            port = "1194"
+            portCheck = False
+        else:
+            pass
 
-    protocol = input("protocol? (TCP or UDP)")
-    if protocol == None:
-        protocol = "udp6"
-    elif protocol != "UDP" or protocol != "udp" or protocol != "TCP" or protocol != "tcp":
-        protocol = "udp6"
-    else:
-        pass
-
-    device = input("device? (tun or tap)")
-    if device == None:
-        device = "tun0"
-    elif protocol != "TUN" or protocol != "tun" or protocol != "TAP" or protocol != "tap":
-        protocol = "tun0"
-    else:
-        pass
+    protocolCheck = True
+    while protocolCheck == True:
+        protocol = input("protocol? (UDP or TCP)")
+        if protocol == None:
+            protocol = "udp6"
+            protocolCheck = False
+        elif protocol != "UDP" or protocol != "udp" or protocol != "TCP" or protocol != "tcp":
+            protocol = "udp6"
+            protocolCheck = False
+        else:
+            pass
+    
+    deviceCheck = True
+    while deviceCheck == True:
+        device = input("device? (tun or tap)")
+        if device == None:
+            device = "tun0"
+            deviceCheck = False
+        elif protocol != "TUN" or protocol != "tun" or protocol != "TAP" or protocol != "tap":
+            protocol = "tun0"
+            deviceCheck = False
+        else:
+            pass
 
     while networkCheck == False:
         try:
@@ -411,13 +435,36 @@ def advancedConf(serverName):
         except ValueError:
             print("Wrong format! Please enter in 'address mask' format.") 
 
-    topology = None
+    tlsServe = str(input("Do you want TLS-SERVER? (yes/no):"))
+    tlsServe = tlsServe.lower()
+
+    topology = int(input("Do you want add type of topology? (subnet[1] / p2p[2] / net30[3] / skip[4]):"))
+
+    ctoc = str(input("Do you want allow CLIENT-TO-CLIENT communication? (yes/no)"))
+    ctoc = ctoc.lower()
+
+    dupCN = str(input("Do you want allow DUPLICATE-CN? (yes/no)"))
+    dupCN = dupCN.lower()
+
+    pingT = str(input("Do you want PING-TIMER-REM?  (yes/no)"))
+    pingT = pingT.lower()
+
+    compLzo = str(input("Do you want LZO COMPRESSION?  (yes/no)"))
+    compLzo = compLzo.lower()
+
+    name = str(input("Name of USER for privileges:"))
+    group = str(input("Name of GROUP for privileges:"))
+
+    verbLevl = str(input("Level for LOGGING [0-11]: "))
 
     os.system("touch /etc/openvpn/server.conf")
     with open("/etc/openvpn/server.conf", "a") as file:
         file.write("#Advanced configuration\n")
         file.write("mode server\n")
-        file.write("tls-server\n")    #zeptat
+        if tlsServe == "yes" or tlsServe == "y":
+            file.write("tls-server\n")
+        else:
+            pass
         file.write(f"port {port} \n")
         file.write(f"proto {protocol}\n")
         file.write(f"proto {device}\n")
@@ -426,18 +473,37 @@ def advancedConf(serverName):
         file.write(f"cert /etc/openvpn/easy-rsa/pki/issued/{serverName}.crt\n")
         file.write(f"key /etc/openvpn/easy-rsa/pki/private/{serverName}.key\n")
         file.write("dh /etc/openvpn/easy-rsa/pki/dh.pem\n")
-        file.write(f"topology {topology}\n") #zeptat
+        if topology == 1:
+            file.write(f"topology subnet\n")
+        elif topology == 2:
+            file.write(f"topology p2p\n")
+        elif topology == 3:
+            file.write(f"topology net30\n")
+        elif topology == 4:
+            pass
         file.write(f"server {network}\n")
-        file.write("client-to-client\n")    #zeptat
-        file.write("duplicate-cn\n")    #zeptat
-        file.write("ping-timer-rem\n")    #zeptat
-        file.write("comp-lzo\n")    #zeptat
-        file.write("verb 3\n")    #zeptat
-        file.write("persist-tun\n")    #zeptat
-        file.write("persist-key\n")    #zeptat
-        file.write("user openvpn\n")    #zeptat
-        file.write("group openvpn\n")    #zeptat
+        if ctoc == "yes" or ctoc == "y":
+            file.write("client-to-client\n")
+        else:
+            pass
+        if dupCN == "yes" or dupCN == "y":
+            file.write("duplicate-cn\n")
+        else:
+            pass
+        if pingT == "yes" or pingT == "y":
+            file.write("ping-timer-rem\n")
+        else:
+            pass
+        if compLzo == "yes" or compLzo == "y":
+            file.write("comp-lzo\n")
+        else:
+            pass
+        file.write("persist-tun\n")
+        file.write("persist-key\n")
+        file.write(f"user {name}\n")
+        file.write(f"group {group}\n")
         file.write("keepalive 10 120\n")
+        file.write(f"verb {verbLevl}\n")
         file.write("status /var/log/openvpn/status.log\n")
         file.write("log /var/log/openvpn/ovpn.log\n")
 
@@ -551,3 +617,26 @@ else:
 
 
 
+# testovaci veci
+
+"""
+
+
+    for root, _, files in os.walk(cert_dir):
+        for file in files:
+            if file.endswith(".crt"):
+                cert_file = os.path.join(root, file)
+                break  # Nalezený certifikát, ukončíme hledání
+    
+    for root, _, files in os.walk(key_dir):
+        for file in files:
+            if file == "ca.key":
+                continue
+            if file.endswith(".key"):
+                key_file = os.path.join(root, file)
+                break 
+    
+
+
+
+"""
