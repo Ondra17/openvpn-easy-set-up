@@ -378,6 +378,23 @@ def easyConf(serverName):
         file.write("status /var/log/openvpn/status.log")
         file.write("log /var/log/openvpn/ovpn.log")
 
+
+
+def inputQuestion(question):
+    check = False
+    while check == False:
+        try:
+            qes = question
+            qes = qes.lower()
+            if qes not in ['yes', 'no', 'y', 'n']:
+                raise ValueError("Invalid input. Please type 'yes' or 'no'.")
+            check = True
+        except ValueError as e:
+            print(e)
+
+    return qes
+
+
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def advancedConf(serverName):
@@ -395,17 +412,21 @@ def advancedConf(serverName):
 
     portCheck = True
     while portCheck == True:
-        port = int(input("Port number?(default openvpn 1194)"))
-        if port == None:
+        port = input("Port number?(default openvpn 1194)")
+        if port.strip() == "":
             port = "1194"
             portCheck = False
         else:
-            pass
+            try:
+                port = int(port)
+                portCheck = False
+            except ValueError:
+                print("Invalid input! Please enter a valid port number.")
 
     protocolCheck = True
     while protocolCheck == True:
         protocol = input("protocol? (UDP or TCP)")
-        if protocol == None:
+        if protocol.strip == "":
             protocol = "udp6"
             protocolCheck = False
         elif protocol != "UDP" or protocol != "udp" or protocol != "TCP" or protocol != "tcp":
@@ -417,7 +438,7 @@ def advancedConf(serverName):
     deviceCheck = True
     while deviceCheck == True:
         device = input("device? (tun or tap)")
-        if device == None:
+        if device.strip == "":
             device = "tun0"
             deviceCheck = False
         elif protocol != "TUN" or protocol != "tun" or protocol != "TAP" or protocol != "tap":
@@ -435,22 +456,31 @@ def advancedConf(serverName):
         except ValueError:
             print("Wrong format! Please enter in 'address mask' format.") 
 
-    tlsServe = str(input("Do you want TLS-SERVER? (yes/no):"))
-    tlsServe = tlsServe.lower()
+    question = str(input("Do you want TLS-SERVER? (yes/no):"))
+    tlsServer = inputQuestion(question)
 
-    topology = int(input("Do you want add type of topology? (subnet[1] / p2p[2] / net30[3] / skip[4]):"))
 
-    ctoc = str(input("Do you want allow CLIENT-TO-CLIENT communication? (yes/no)"))
-    ctoc = ctoc.lower()
+    topoCheck = False
+    while topoCheck == False:
+        try:
+            topology = int(input("Do you want add type of topology? (subnet[1] / p2p[2] / net30[3] / skip[4]):"))
+            if topology not in [1, 2, 3, 4]:
+                raise ValueError("Invalid input. Please type 1 / 2 / 3 / 4.")
+            topoCheck = True
+        except ValueError as errorTopo:
+            print(errorTopo)
 
-    dupCN = str(input("Do you want allow DUPLICATE-CN? (yes/no)"))
-    dupCN = dupCN.lower()
+    question = str(input("Do you want allow CLIENT-TO-CLIENT communication? (yes/no)"))
+    ctoc = inputQuestion(question)
 
-    pingT = str(input("Do you want PING-TIMER-REM?  (yes/no)"))
-    pingT = pingT.lower()
+    question = str(input("Do you want allow DUPLICATE-CN? (yes/no)"))
+    dupCN = inputQuestion(question)
 
-    compLzo = str(input("Do you want LZO COMPRESSION?  (yes/no)"))
-    compLzo = compLzo.lower()
+    question = str(input("Do you want PING-TIMER-REM?  (yes/no)"))
+    pingT = inputQuestion(question)
+
+    question = str(input("Do you want LZO COMPRESSION?  (yes/no)"))
+    compLzo = inputQuestion(question)
 
     name = str(input("Name of USER for privileges:"))
     group = str(input("Name of GROUP for privileges:"))
@@ -461,7 +491,7 @@ def advancedConf(serverName):
     with open("/etc/openvpn/server.conf", "a") as file:
         file.write("#Advanced configuration\n")
         file.write("mode server\n")
-        if tlsServe == "yes" or tlsServe == "y":
+        if tlsServer == "yes" or tlsServer == "y":
             file.write("tls-server\n")
         else:
             pass
@@ -639,4 +669,16 @@ else:
 
 
 
+"""
+"""
+    tlsServeCheck = False
+    while tlsServeCheck == False:
+        try:
+            tlsServe = str(input("Do you want TLS-SERVER? (yes/no):"))
+            tlsServe = tlsServe.lower()
+            if tlsServe not in ['yes', 'no', 'y', 'n']:
+                raise ValueError("Invalid input. Please type 'yes' or 'no'.")
+            tlsServeCheck = True
+        except ValueError as errorTLS:
+            print(errorTLS)
 """
