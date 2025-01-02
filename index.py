@@ -186,13 +186,13 @@ def CA_check():
 
 def server_cert_gen(CA_dir, serverName):
 
-    os.chdir(CA_dir)
-    os.system(f'./easyrsa gen-req {serverName} nopass')
-    os.system(f'./easyrsa sign-req server {serverName}')
+        os.chdir(CA_dir)
+        os.system(f'./easyrsa gen-req {serverName} nopass')
+        os.system(f'./easyrsa sign-req server {serverName}')
 
-    if  os.path.exists("/etc/openvpn/easy-rsa/pki/dh.pem"):
-        pass
-    else:
+def server_dh_gen(CA_dir):
+
+        os.chdir(CA_dir)
         os.system('./easyrsa gen-dh')
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
@@ -224,7 +224,9 @@ def log_create():
     else:
         print("Logs files are already created")
 
-def openVpnConf():
+#-------------------------------------------------------------------------------------------------------------------------------------------------
+
+def openVpnConf(serverName):
     port = None
     protocol = None
     device = None
@@ -244,15 +246,15 @@ def openVpnConf():
     else:
         pass
 
-    protocol = input(("protocol? (TCP or UDP)"))
+    protocol = input("protocol? (TCP or UDP)")
     if protocol == None:
-        protocol = "UDP"
+        protocol = "udp6"
     elif protocol != "UDP" or protocol != "udp" or protocol != "TCP" or protocol != "tcp":
-        protocol = "UDP"
+        protocol = "udp6"
     else:
         pass
 
-    device = input(("device? (tun or tap)"))
+    device = input("device? (tun or tap)")
     if device == None:
         device = "tun0"
     elif protocol != "TUN" or protocol != "tun" or protocol != "TAP" or protocol != "tap":
@@ -283,29 +285,173 @@ def openVpnConf():
             if file.endswith(".key"):
                 key_file = os.path.join(root, file)
                 break 
-    """
-    
-    device = input(int("device? (tun or tap)"))
-    if device == None:
-        device = "tun"            
+    """      
 
     os.system("touch /etc/openvpn/server.conf")
     with open("/etc/openvpn/server.conf", "a") as file:
         file.write("mode server")
-        file.write(f"port {port}")
-        file.write(f"proto {protocol}")
-        file.write(f"proto {device}")
-        file.write(f"dev {device}")
-        file.write("ca /etc/openvpn/easy-rsa/pki/ca.crt")
-        file.write(f"cert /etc/openvpn/easy-rsa/pki/issued/{serverName}.crt")
-        file.write(f"key /etc/openvpn/easy-rsa/pki/private/{serverName}.key")
-        file.write("dh /etc/openvpn/easy-rsa/pki/dh.pem")
-        file.write(f"server {network}")
-        file.write("keepalive 10 120")
-        #file.write("status /var/log/openvpn/status.log")
-        #file.write("log /var/log/openvpn/ovpn.log")
+        file.write(f"port {port} \n")
+        file.write(f"proto {protocol}\n")
+        file.write(f"proto {device}\n")
+        file.write(f"dev {device}\n")
+        file.write("ca /etc/openvpn/easy-rsa/pki/ca.crt\n")
+        file.write(f"cert /etc/openvpn/easy-rsa/pki/issued/{serverName}.crt\n")
+        file.write(f"key /etc/openvpn/easy-rsa/pki/private/{serverName}.key\n")
+        file.write("dh /etc/openvpn/easy-rsa/pki/dh.pem\n")
+        file.write(f"server {network}\n")
+        file.write("keepalive 10 120\n")
+        file.write("status /var/log/openvpn/status.log")
+        file.write("log /var/log/openvpn/ovpn.log")
         #os.system("cp /usr/share/doc/openvpn/sample/sample-config-files/server.conf /etc/openvpn")
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------
+
+def easyConf(serverName):
+    port = None
+    protocol = None
+    device = None
+    cert_dir = "/etc/openvpn/easy-rsa/pki/issued/"
+    cert_file = None
+    key_dir = "/etc/openvp/easy-rsa/pki/private/"
+    key_file = None
+    address = None
+    mask = None
+    network = None
+    networkCheck = False
+
+    port = int(input("Port number?(default openvpn 1194)"))
+    if port == None:
+        port = "1194"
+    else:
+        pass
+
+    protocol = input("protocol? (TCP or UDP)")
+    if protocol == None:
+        protocol = "udp6"
+    elif protocol != "UDP" or protocol != "udp" or protocol != "TCP" or protocol != "tcp":
+        protocol = "udp6"
+    else:
+        pass
+
+    device = input("device? (tun or tap)")
+    if device == None:
+        device = "tun0"
+    elif protocol != "TUN" or protocol != "tun" or protocol != "TAP" or protocol != "tap":
+        protocol = "tun0"
+    else:
+        pass
+
+    while networkCheck == False:
+        try:
+            network = input("Network (format: 'address mask'): ")
+            address, mask = network.split()
+            ipaddress.IPv4Network(f"{address}/{mask}", strict=False)
+            networkCheck = True
+        except ValueError:
+            print("Wrong format! Please enter in 'address mask' format.")
+
+    os.system("touch /etc/openvpn/server.conf")
+    with open("/etc/openvpn/server.conf", "a") as file:
+        file.write("#Easy configuration")
+        file.write("mode server")
+        file.write(f"port {port} \n")
+        file.write(f"proto {protocol}\n")
+        file.write(f"dev {device}\n")
+        file.write("ca /etc/openvpn/easy-rsa/pki/ca.crt\n")
+        file.write(f"cert /etc/openvpn/easy-rsa/pki/issued/{serverName}.crt\n")
+        file.write(f"key /etc/openvpn/easy-rsa/pki/private/{serverName}.key\n")
+        file.write("dh /etc/openvpn/easy-rsa/pki/dh.pem\n")
+        file.write(f"server {network}\n")
+        file.write("status /var/log/openvpn/status.log")
+        file.write("log /var/log/openvpn/ovpn.log")
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------
+
+def advancedConf(serverName):
+    port = None
+    protocol = None
+    device = None
+    cert_dir = "/etc/openvpn/easy-rsa/pki/issued/"
+    cert_file = None
+    key_dir = "/etc/openvp/easy-rsa/pki/private/"
+    key_file = None
+    address = None
+    mask = None
+    network = None
+    networkCheck = False
+
+    port = int(input("Port number?(default openvpn 1194)"))
+    if port == None:
+        port = "1194"
+    else:
+        pass
+
+    protocol = input("protocol? (TCP or UDP)")
+    if protocol == None:
+        protocol = "udp6"
+    elif protocol != "UDP" or protocol != "udp" or protocol != "TCP" or protocol != "tcp":
+        protocol = "udp6"
+    else:
+        pass
+
+    device = input("device? (tun or tap)")
+    if device == None:
+        device = "tun0"
+    elif protocol != "TUN" or protocol != "tun" or protocol != "TAP" or protocol != "tap":
+        protocol = "tun0"
+    else:
+        pass
+
+    while networkCheck == False:
+        try:
+            network = input("Network (format: 'address mask'): ")
+            address, mask = network.split()
+            ipaddress.IPv4Network(f"{address}/{mask}", strict=False)
+            networkCheck = True
+        except ValueError:
+            print("Wrong format! Please enter in 'address mask' format.") 
+
+    topology = None
+
+    os.system("touch /etc/openvpn/server.conf")
+    with open("/etc/openvpn/server.conf", "a") as file:
+        file.write("#Advanced configuration\n")
+        file.write("mode server\n")
+        file.write("tls-server\n")    #zeptat
+        file.write(f"port {port} \n")
+        file.write(f"proto {protocol}\n")
+        file.write(f"proto {device}\n")
+        file.write(f"dev {device}\n")
+        file.write("ca /etc/openvpn/easy-rsa/pki/ca.crt\n")
+        file.write(f"cert /etc/openvpn/easy-rsa/pki/issued/{serverName}.crt\n")
+        file.write(f"key /etc/openvpn/easy-rsa/pki/private/{serverName}.key\n")
+        file.write("dh /etc/openvpn/easy-rsa/pki/dh.pem\n")
+        file.write(f"topology {topology}\n") #zeptat
+        file.write(f"server {network}\n")
+        file.write("client-to-client\n")    #zeptat
+        file.write("duplicate-cn\n")    #zeptat
+        file.write("ping-timer-rem\n")    #zeptat
+        file.write("comp-lzo\n")    #zeptat
+        file.write("verb 3\n")    #zeptat
+        file.write("persist-tun\n")    #zeptat
+        file.write("persist-key\n")    #zeptat
+        file.write("user openvpn\n")    #zeptat
+        file.write("group openvpn\n")    #zeptat
+        file.write("keepalive 10 120\n")
+        file.write("status /var/log/openvpn/status.log\n")
+        file.write("log /var/log/openvpn/ovpn.log\n")
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------
+
+def server_name_input():
+        Name = None
+        run = True
+        while run == True:
+            if Name == None:
+                Name=input("Server Name:")
+            else:
+                run = False
+        return Name
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------     Vecicky        -----------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------------------------------------
@@ -341,16 +487,63 @@ if os.geteuid() == 0:
     else:   
         CA_build(CA_dir)
     
-    
+
+    if serverName == None:
+        if  os.path.exists(f"/etc/openvpn/easy-rsa/pki/private/{serverName}.key") and os.path.exists(f"/etc/openvpn/easy-rsa/pki/issued/{serverName}.crt"):
+            pass
+        else:
+            serverName = server_name_input()
+            server_cert_gen(CA_dir, serverName)
+    else:
+        pass
+
+    if  os.path.exists("/etc/openvpn/easy-rsa/pki/dh.pem"):
+        pass
+    else:
+        server_dh_gen(CA_dir)
+
+    log_create()
+    """
+    if serverName == None:
+        serverName = server_name_input()
+        openVpnConf(serverName)
+    else:
+        openVpnConf(serverName)
+    """
+    #Easy installation or advanced
     while run == True:
         if serverName == None:
-            serverName=input("Server Name:")
+            serverName = server_name_input()
+            print("Choose between easy [1] or advanced [2] configuration")
+            print("Easy -> port, protocol, device, server (ip address), log")
+            print("Advanced -> Extended configuration")
+            print("If you want to change them manually, after script ends go to /etc/openvpn/server.conf")
+            confQues = int(input("Write 1 or 2:"))
+
+            if confQues == 1:
+                easyConf(serverName)
+                run = False
+            elif confQues == 2:
+                advancedConf(serverName)
+                run = False
+            else:
+                pass
         else:
-            run = False
-    
-    server_cert_gen(CA_dir, serverName)
-    log_create()
-    openVpnConf(serverName)
+            print("Choose between easy [1] or advanced [2] configuration")
+            print("Easy -> port, protocol, device, server (ip address), log")
+            print("Advanced -> Extended configuration")
+            print("If you want to change them manually, after script ends go to /etc/openvpn/server.conf")
+            confQues = int(input("Write 1 or 2:"))
+
+            if confQues == 1:
+                easyConf(serverName)
+                run = False
+            elif confQues == 2:
+                advancedConf(serverName)
+                run = False
+            else:
+                pass
+
 
 else:
     print("ERROR: You need sudo rights!")
