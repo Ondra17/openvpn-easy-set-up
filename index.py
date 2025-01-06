@@ -409,6 +409,8 @@ def advancedConf(serverName):
     mask = None
     network = None
     networkCheck = False
+    dnsCheck = False
+    dns = None
 
     portCheck = True
     while portCheck == True:
@@ -441,8 +443,8 @@ def advancedConf(serverName):
         if device.strip == "":
             device = "tun0"
             deviceCheck = False
-        elif protocol != "TUN" or protocol != "tun" or protocol != "TAP" or protocol != "tap":
-            protocol = "tun0"
+        elif device != "TUN" or device != "tun" or device != "TAP" or device != "tap":
+            device = "tun0"
             deviceCheck = False
         else:
             pass
@@ -455,6 +457,22 @@ def advancedConf(serverName):
             networkCheck = True
         except ValueError:
             print("Wrong format! Please enter in 'address mask' format.") 
+
+    
+    question = str(input("Do you want ADD DNS address? (yes/no):"))
+    dnsQst = inputQuestion(question)
+    if dnsQst == "yes" or dnsQst == "y":
+        dnsCheck = False
+    elif dnsQst == "No" or dnsQst == "n":
+        dnsCheck = True
+
+    while dnsCheck == False:
+        try:
+            dns = input("DNS server address (format: 'address'): ")
+            ipaddress.IPv4Network(f"{dns}", strict=False)
+            dnsCheck = True
+        except ValueError:
+            print("Wrong Format! Please enter in 'address' format.")
 
     question = str(input("Do you want TLS-SERVER? (yes/no):"))
     tlsServer = inputQuestion(question)
@@ -497,7 +515,6 @@ def advancedConf(serverName):
             pass
         file.write(f"port {port} \n")
         file.write(f"proto {protocol}\n")
-        file.write(f"proto {device}\n")
         file.write(f"dev {device}\n")
         file.write("ca /etc/openvpn/easy-rsa/pki/ca.crt\n")
         file.write(f"cert /etc/openvpn/easy-rsa/pki/issued/{serverName}.crt\n")
@@ -512,6 +529,10 @@ def advancedConf(serverName):
         elif topology == 4:
             pass
         file.write(f"server {network}\n")
+        if dnsCheck == True:
+            file.wite(f'push "dhcp-option DNS {dns}"')
+        else:
+            pass
         if ctoc == "yes" or ctoc == "y":
             file.write("client-to-client\n")
         else:
@@ -639,6 +660,8 @@ if os.geteuid() == 0:
                 run = False
             else:
                 pass
+
+        usrConf
 
 
 else:
