@@ -89,6 +89,8 @@ def dir_struc():
             print(f"The path '{checkGitInstallEasy}' were not created successfully")
             sys.exit(1)
 
+    os.system("mkdir /etc/openvpn/users")
+    #udelat opravenni
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 """
 def rsa_qes():
@@ -379,6 +381,22 @@ def easyConf(serverName):
 
     return port, protocol, device
 
+def usrConfEasy(port, protocol, device):
+    addrHost = input()
+
+    os.system("touch /etc/openvpn/client.conf")
+    with open("/etc/openvpn/client.conf", "a") as file:
+        file.write("#Easy configuration\n")
+        file.write("client\n")
+        file.write(f"remote {addrHost}")
+        file.write(f"dev {device}\n")
+        file.write(f"proto {protocol}\n")
+        file.write("remote-cert-tls server")
+        file.write("cert cert.crt")
+        file.write("key key.key")
+        file.write("persist-tun")
+        file.write("persist-key")
+        file.write("verb 3")
 
 def inputQuestion(question):
     check = False
@@ -595,13 +613,6 @@ def advancedConf(serverName):
 
     # zvazit pridani cipher a odebrat lzo compresion
 
-def usrConfEasy(port, protocol, device):
-    os.system("touch /etc/openvpn/client.conf")
-    with open("/etc/openvpn/client.conf", "a") as file:
-        file.write("#Easy configuration\n")
-        file.write("client\n")
-        file.write(f"dev {device}\n")
-        file.write(f"proto {protocol}\n")
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def server_name_input():
