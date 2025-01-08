@@ -281,7 +281,6 @@ def openVpnConf(serverName):
             networkCheck = True
         except ValueError:
             print("Wrong format! Please enter in 'address mask' format.")
-      
 
     os.system("touch /etc/openvpn/server.conf")
     with open("/etc/openvpn/server.conf", "a") as file:
@@ -378,6 +377,7 @@ def easyConf(serverName):
         file.write("status /var/log/openvpn/status.log")
         file.write("log /var/log/openvpn/ovpn.log")
 
+    return port, protocol, device
 
 
 def inputQuestion(question):
@@ -497,13 +497,37 @@ def advancedConf(serverName):
     question = str(input("Do you want PING-TIMER-REM?  (yes/no)"))
     pingT = inputQuestion(question)
 
+    """
     question = str(input("Do you want LZO COMPRESSION?  (yes/no)"))
     compLzo = inputQuestion(question)
+    """
 
     name = str(input("Name of USER for privileges:"))
     group = str(input("Name of GROUP for privileges:"))
 
     verbLevl = str(input("Level for LOGGING [0-11]: "))
+
+    question = str(input("Do you want connect VPN with internet (push-gateway)(yes/no):"))
+    gatewayUse = inputQuestion(question)
+
+    if gatewayUse == "yes" or gatewayUse == "y":
+        gateway = '.'.join(address.split('.')[:-1]+["1"])  
+    else:
+        pass
+
+    question = str(input("Do you want add some LAN (push)(yes/no):"))
+    lanPushUse = inputQuestion(question)
+
+    if lanPushUse == "yes" or lanPushUse == "y":
+        pushCheck = False
+        while pushCheck == False:
+            try:
+                lanPush = input("Push (format: 'address mask'): ")
+                lanAddress, lanMask = lanPush.split()
+                ipaddress.IPv4Network(f"{lanAddress}/{lanMask}", strict=False)
+                pushCheck = True
+            except ValueError:
+                print("Wrong format! Please enter in 'address mask' format.") 
 
     os.system("touch /etc/openvpn/server.conf")
     with open("/etc/openvpn/server.conf", "a") as file:
@@ -533,6 +557,15 @@ def advancedConf(serverName):
             file.wite(f'push "dhcp-option DNS {dns}"')
         else:
             pass
+        if lanPushUse == "yes" or lanPushUse == "y":
+            file.write(f"push {lanAddress}")
+        else:
+            pass
+        if gatewayUse == "yes" or gatewayUse == "y":
+            file.write(f"push route-gateway {gateway}")
+            file.write("redirect-gateway")
+        else:
+            pass
         if ctoc == "yes" or ctoc == "y":
             file.write("client-to-client\n")
         else:
@@ -545,10 +578,12 @@ def advancedConf(serverName):
             file.write("ping-timer-rem\n")
         else:
             pass
+        """
         if compLzo == "yes" or compLzo == "y":
             file.write("comp-lzo\n")
         else:
             pass
+        """
         file.write("persist-tun\n")
         file.write("persist-key\n")
         file.write(f"user {name}\n")
@@ -558,6 +593,15 @@ def advancedConf(serverName):
         file.write("status /var/log/openvpn/status.log\n")
         file.write("log /var/log/openvpn/ovpn.log\n")
 
+    # zvazit pridani cipher a odebrat lzo compresion
+
+def usrConfEasy(port, protocol, device):
+    os.system("touch /etc/openvpn/client.conf")
+    with open("/etc/openvpn/client.conf", "a") as file:
+        file.write("#Easy configuration\n")
+        file.write("client\n")
+        file.write(f"dev {device}\n")
+        file.write(f"proto {protocol}\n")
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def server_name_input():
@@ -653,7 +697,9 @@ if os.geteuid() == 0:
             confQues = int(input("Write 1 or 2:"))
 
             if confQues == 1:
-                easyConf(serverName)
+                #easyConf(serverName)
+                port, protocol, device = easyConf(serverName)
+                usrConfEasy(port, protocol, device)
                 run = False
             elif confQues == 2:
                 advancedConf(serverName)
@@ -661,7 +707,6 @@ if os.geteuid() == 0:
             else:
                 pass
 
-        usrConf
 
 
 else:
