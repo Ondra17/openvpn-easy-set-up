@@ -227,7 +227,7 @@ def log_create():
         print("Logs files are already created")
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
-
+"""
 def openVpnConf(serverName):
     port = None
     protocol = None
@@ -303,7 +303,7 @@ def openVpnConf(serverName):
         file.write("status /var/log/openvpn/status.log")
         file.write("log /var/log/openvpn/ovpn.log")
         #os.system("cp /usr/share/doc/openvpn/sample/sample-config-files/server.conf /etc/openvpn")
-
+"""
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def easyConf(serverName):
@@ -407,6 +407,10 @@ def inputQuestion(question):
             if qes not in ['yes', 'no', 'y', 'n']:
                 raise ValueError("Invalid input. Please type 'yes' or 'no'.")
             check = True
+            if qes == "yes" or qes == "y":
+                qes = "y"
+            else:
+                pass
         except ValueError as e:
             print(e)
 
@@ -479,7 +483,7 @@ def advancedConf(serverName):
     
     question = str(input("Do you want ADD DNS address? (yes/no):"))
     dnsQst = inputQuestion(question)
-    if dnsQst == "yes" or dnsQst == "y":
+    if dnsQst == "y":
         dnsCheck = False
     elif dnsQst == "No" or dnsQst == "n":
         dnsCheck = True
@@ -515,11 +519,6 @@ def advancedConf(serverName):
     question = str(input("Do you want PING-TIMER-REM?  (yes/no)"))
     pingT = inputQuestion(question)
 
-    """
-    question = str(input("Do you want LZO COMPRESSION?  (yes/no)"))
-    compLzo = inputQuestion(question)
-    """
-
     name = str(input("Name of USER for privileges:"))
     group = str(input("Name of GROUP for privileges:"))
 
@@ -528,7 +527,10 @@ def advancedConf(serverName):
     question = str(input("Do you want connect VPN with internet (push-gateway)(yes/no):"))
     gatewayUse = inputQuestion(question)
 
-    if gatewayUse == "yes" or gatewayUse == "y":
+    question = str(input("Do you want to add CIPHER(yes/no):"))
+    cipherUse = inputQuestion(question)
+
+    if gatewayUse == "y":
         gateway = '.'.join(address.split('.')[:-1]+["1"])  
     else:
         pass
@@ -551,7 +553,7 @@ def advancedConf(serverName):
     with open("/etc/openvpn/server.conf", "a") as file:
         file.write("#Advanced configuration\n")
         file.write("mode server\n")
-        if tlsServer == "yes" or tlsServer == "y":
+        if tlsServer == "y":
             file.write("tls-server\n")
         else:
             pass
@@ -572,36 +574,36 @@ def advancedConf(serverName):
             pass
         file.write(f"server {network}\n")
         if dnsCheck == True:
-            file.wite(f'push "dhcp-option DNS {dns}"')
+            file.write(f'push "dhcp-option DNS {dns}"')
         else:
             pass
-        if lanPushUse == "yes" or lanPushUse == "y":
+        if lanPushUse == "y":
             file.write(f"push {lanAddress}")
         else:
             pass
-        if gatewayUse == "yes" or gatewayUse == "y":
+        if gatewayUse == "y":
             file.write(f"push route-gateway {gateway}")
             file.write("redirect-gateway")
         else:
             pass
-        if ctoc == "yes" or ctoc == "y":
+        if cipherUse == "y":
+            file.write("cipher AES-256-CBC")
+            file.write("auth SHA512")
+            file.write("tls-cipher TLS-DHE-RSA-WITH-AES-256-GCM-SHA384:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256:TLS-DHE-RSA-WITH-AES-128-GCM-SHA256:TLS-DHE-RSA-WITH-AES-128-CBC-SHA256")
+        else:
+            pass
+        if ctoc == "y":
             file.write("client-to-client\n")
         else:
             pass
-        if dupCN == "yes" or dupCN == "y":
+        if dupCN == "y":
             file.write("duplicate-cn\n")
         else:
             pass
-        if pingT == "yes" or pingT == "y":
+        if pingT == "y":
             file.write("ping-timer-rem\n")
         else:
             pass
-        """
-        if compLzo == "yes" or compLzo == "y":
-            file.write("comp-lzo\n")
-        else:
-            pass
-        """
         file.write("persist-tun\n")
         file.write("persist-key\n")
         file.write(f"user {name}\n")
@@ -611,7 +613,30 @@ def advancedConf(serverName):
         file.write("status /var/log/openvpn/status.log\n")
         file.write("log /var/log/openvpn/ovpn.log\n")
 
-    # zvazit pridani cipher a odebrat lzo compresion
+    return port, protocol, device, cipherUse
+
+def usrConfAdv(port, protocol, device, cipher):
+    addrHost = input()
+
+    os.system("touch /etc/openvpn/client.conf")
+    with open("/etc/openvpn/client.conf", "a") as file:
+        file.write("#Easy configuration\n")
+        file.write("client\n")
+        file.write(f"remote {addrHost}")
+        file.write(f"dev {device}\n")
+        file.write(f"proto {protocol}\n")
+        file.write("remote-cert-tls server")
+        if cipher == "y":
+            file.write("cipher AES-256-CBC")
+            file.write("auth SHA512")
+            file.write("tls-cipher TLS-DHE-RSA-WITH-AES-256-GCM-SHA384:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256:TLS-DHE-RSA-WITH-AES-128-GCM-SHA256:TLS-DHE-RSA-WITH-AES-128-CBC-SHA256")
+        else:
+            pass
+        file.write("cert cert.crt")
+        file.write("key key.key")
+        file.write("persist-tun")
+        file.write("persist-key")
+        file.write("verb 3")
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -701,6 +726,7 @@ if os.geteuid() == 0:
             else:
                 pass
         else:
+    
             print("Choose between easy [1] or advanced [2] configuration")
             print("Easy -> port, protocol, device, server (ip address), log")
             print("Advanced -> Extended configuration")
@@ -713,12 +739,13 @@ if os.geteuid() == 0:
                 usrConfEasy(port, protocol, device)
                 run = False
             elif confQues == 2:
-                advancedConf(serverName)
+                port, protocol, device, cipher = advancedConf(serverName)
+                usrConfAdv(port, protocol, device, cipher)
                 run = False
             else:
                 pass
-
-
+    
+    if os.path.exists(f"/etc/openvpn/easy-rsa/pki") and os.path.exists("/etc/openvpn/server.conf") and os.path.exists("/etc/openvpn/easy-rsa/pki/private/user.conf")
 
 else:
     print("ERROR: You need sudo rights!")
