@@ -227,84 +227,6 @@ def log_create():
         print("Logs files are already created")
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
-"""
-def openVpnConf(serverName):
-    port = None
-    protocol = None
-    device = None
-    cert_dir = "/etc/openvpn/easy-rsa/pki/issued/"
-    cert_file = None
-    key_dir = "/etc/openvp/easy-rsa/pki/private/"
-    key_file = None
-    address = None
-    mask = None
-    check = None
-    network = None
-    networkCheck = False
-    
-    portCheck = True
-    while portCheck == True:
-        port = int(input("Port number?(default openvpn 1194)"))
-        if port == None:
-            port = "1194"
-            portCheck = False
-        else:
-            pass
-
-    protocolCheck = True
-    while protocolCheck == True:
-        protocol = input("protocol? (TCP or UDP)")
-        if protocol == None:
-            protocol = "udp6"
-            protocolCheck = False
-        elif protocol != "UDP" or protocol != "udp" or protocol != "TCP" or protocol != "tcp":
-            protocol = "udp6"
-            protocolCheck = False
-        else:
-            pass
-    
-    deviceCheck = True
-    while deviceCheck == True:
-        device = input("device? (tun or tap)")
-        if device == None:
-            device = "tun0"
-            deviceCheck = False
-        elif protocol != "TUN" or protocol != "tun" or protocol != "TAP" or protocol != "tap":
-            protocol = "tun0"
-            deviceCheck = False
-        else:
-            pass
-
-    while networkCheck == False:
-        try:
-            network = input("Network (format: 'address mask'): ")
-            address, mask = network.split()
-            ipaddress.IPv4Network(f"{address}/{mask}", strict=False)
-            networkCheck = True
-        except ValueError:
-            print("Wrong format! Please enter in 'address mask' format.")
-
-    os.system("touch /etc/openvpn/server.conf")
-    with open("/etc/openvpn/server.conf", "a") as file:
-        file.write("mode server")
-        file.write(f"port {port} \n")
-        file.write(f"proto {protocol}\n")
-        file.write(f"proto {device}\n")
-        file.write(f"dev {device}\n")
-        file.write("ca /etc/openvpn/easy-rsa/pki/ca.crt\n")
-        file.write(f"cert /etc/openvpn/easy-rsa/pki/issued/{serverName}.crt\n")
-        file.write(f"key /etc/openvpn/easy-rsa/pki/private/{serverName}.key\n")
-        file.write("dh /etc/openvpn/easy-rsa/pki/dh.pem\n")
-        file.write(f"server {network}\n")
-        file.write("keepalive 10 120\n")
-        file.write("persist-tun\n")
-        file.write("persist-key\n")
-        file.write("verb 3")
-        file.write("status /var/log/openvpn/status.log")
-        file.write("log /var/log/openvpn/ovpn.log")
-        #os.system("cp /usr/share/doc/openvpn/sample/sample-config-files/server.conf /etc/openvpn")
-"""
-#-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def easyConf(serverName):
     port = None
@@ -381,6 +303,8 @@ def easyConf(serverName):
 
     return port, protocol, device
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------
+
 def usrConfEasy(port, protocol, device):
     addrHost = input()
 
@@ -388,7 +312,7 @@ def usrConfEasy(port, protocol, device):
     with open("/etc/openvpn/client.conf", "a") as file:
         file.write("#Easy configuration\n")
         file.write("client\n")
-        file.write(f"remote {addrHost}")
+        file.write(f"remote {addrHost} {port}")
         file.write(f"dev {device}\n")
         file.write(f"proto {protocol}\n")
         file.write("remote-cert-tls server")
@@ -415,7 +339,6 @@ def inputQuestion(question):
             print(e)
 
     return qes
-
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -613,25 +536,47 @@ def advancedConf(serverName):
         file.write("status /var/log/openvpn/status.log\n")
         file.write("log /var/log/openvpn/ovpn.log\n")
 
-    return port, protocol, device, cipherUse
+    return port, protocol, device, cipherUse, gatewayUse
 
-def usrConfAdv(port, protocol, device, cipher):
-    addrHost = input()
+#-------------------------------------------------------------------------------------------------------------------------------------------------
+
+def usrConfAdv(port, protocol, device, cipher, gatewayUse):
+    servRoute = False
+
+    if gatewayUse == "y":
+        while servRoute == False:
+            try:
+                serverRoute = input("Route into the server (format: 'address mask'): ")
+                address, mask = serverRoute.split()
+                ipaddress.IPv4Network(f"{address}/{mask}", strict=False)
+                networkCheck = True
+            except ValueError:
+                print("Wrong format! Please enter in 'address mask' format.") 
+    else:
+        pass
+
 
     os.system("touch /etc/openvpn/client.conf")
     with open("/etc/openvpn/client.conf", "a") as file:
         file.write("#Easy configuration\n")
         file.write("client\n")
-        file.write(f"remote {addrHost}")
+        file.write(f"remote {addrHost} {port}")
         file.write(f"dev {device}\n")
         file.write(f"proto {protocol}\n")
+        file.write("redirect-gateway")
+        file.write("resolv-retry infinite")
         file.write("remote-cert-tls server")
         if cipher == "y":
             file.write("cipher AES-256-CBC")
             file.write("auth SHA512")
-            file.write("tls-cipher TLS-DHE-RSA-WITH-AES-256-GCM-SHA384:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256:TLS-DHE-RSA-WITH-AES-128-GCM-SHA256:TLS-DHE-RSA-WITH-AES-128-CBC-SHA256")
+            file.write("tls-cipher TLS-DHE-RSA-WITH-AES-256-CBC-SHA")
         else:
             pass
+        if gatewayUse == "y":
+            file.write(f"route {serverRoute}")
+        else: 
+            pass
+        file.write("mute-replay-warnings")
         file.write("cert cert.crt")
         file.write("key key.key")
         file.write("persist-tun")
@@ -649,6 +594,12 @@ def server_name_input():
             else:
                 run = False
         return Name
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------
+
+def serverStart():
+    os.system("systemctl start openvpn-server@server")
+    os.system("systemctl status openvpn-server@server")
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------     Vecicky        -----------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------------------------------------
@@ -739,13 +690,14 @@ if os.geteuid() == 0:
                 usrConfEasy(port, protocol, device)
                 run = False
             elif confQues == 2:
-                port, protocol, device, cipher = advancedConf(serverName)
-                usrConfAdv(port, protocol, device, cipher)
+                port, protocol, device, cipher, gatewayUse = advancedConf(serverName)
+                usrConfAdv(port, protocol, device, cipher, gatewayUse)
                 run = False
             else:
                 pass
     
-    if os.path.exists(f"/etc/openvpn/easy-rsa/pki") and os.path.exists("/etc/openvpn/server.conf") and os.path.exists("/etc/openvpn/easy-rsa/pki/private/user.conf")
+    #if os.path.exists(f"/etc/openvpn/easy-rsa/pki") and os.path.exists("/etc/openvpn/server.conf") and os.path.exists("/etc/openvpn/easy-rsa/pki/private/user.conf")
+        #serverStart()
 
 else:
     print("ERROR: You need sudo rights!")
