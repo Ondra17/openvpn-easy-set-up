@@ -243,20 +243,24 @@ def easyConf(serverName):
 
     portCheck = True
     while portCheck == True:
-        port = int(input("Port number?(default openvpn 1194)"))
-        if port == None:
+        port = input("Port number?(default openvpn 1194)")
+        if port.strip() == "":
             port = "1194"
             portCheck = False
         else:
-            pass
+            try:
+                port = int(port)
+                portCheck = False
+            except ValueError:
+                print("Invalid input! Please enter a valid port number.")
 
     protocolCheck = True
     while protocolCheck == True:
-        protocol = input("protocol? (TCP or UDP)")
-        if protocol == None:
+        protocol = input("protocol? (UDP or TCP)")
+        if protocol.strip() == "":
             protocol = "udp6"
             protocolCheck = False
-        elif protocol != "UDP" or protocol != "udp" or protocol != "TCP" or protocol != "tcp":
+        elif protocol.lower() not in ("udp", "tcp"):
             protocol = "udp6"
             protocolCheck = False
         else:
@@ -265,11 +269,11 @@ def easyConf(serverName):
     deviceCheck = True
     while deviceCheck == True:
         device = input("device? (tun or tap)")
-        if device == None:
+        if device.strip() == "":
             device = "tun0"
             deviceCheck = False
-        elif protocol != "TUN" or protocol != "tun" or protocol != "TAP" or protocol != "tap":
-            protocol = "tun0"
+        elif device.lower() not in ("tun", "tap"):
+            device = "tun0"
             deviceCheck = False
         else:
             pass
@@ -281,12 +285,12 @@ def easyConf(serverName):
             ipaddress.IPv4Network(f"{address}/{mask}", strict=False)
             networkCheck = True
         except ValueError:
-            print("Wrong format! Please enter in 'address mask' format.")
+            print("Wrong format! Please enter in 'address mask' format.") 
 
     os.system("touch /etc/openvpn/server.conf")
     with open("/etc/openvpn/server.conf", "a") as file:
         file.write("#Easy configuration")
-        file.write("mode server")
+        file.write("mode server \n")
         file.write(f"port {port} \n")
         file.write(f"proto {protocol}\n")
         file.write(f"dev {device}\n")
@@ -298,29 +302,31 @@ def easyConf(serverName):
         file.write("persist-tun\n")
         file.write("persist-key\n")
         file.write("verb 3\n")
-        file.write("status /var/log/openvpn/status.log")
+        file.write("status /var/log/openvpn/status.log\n")
         file.write("log /var/log/openvpn/ovpn.log")
+
+    print(f"Returning values: {port}, {protocol}, {device}")
 
     return port, protocol, device
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def usrConfEasy(port, protocol, device):
-    addrHost = input()
+    addrHost = input("Enter server URL or IP address: ")
 
-    os.system("touch /etc/openvpn/client.conf")
+    os.system("sudo touch /etc/openvpn/client.conf")
     with open("/etc/openvpn/client.conf", "a") as file:
         file.write("#Easy configuration\n")
         file.write("client\n")
-        file.write(f"remote {addrHost} {port}")
+        file.write(f"remote {addrHost} {port}\n")
         file.write(f"dev {device}\n")
         file.write(f"proto {protocol}\n")
-        file.write("remote-cert-tls server")
-        file.write("cert cert.crt")
-        file.write("key key.key")
-        file.write("persist-tun")
-        file.write("persist-key")
-        file.write("verb 3")
+        file.write("remote-cert-tls server\n")
+        file.write("cert cert.crt\n")
+        file.write("key key.key\n")
+        file.write("persist-tun\n")
+        file.write("persist-key\n")
+        file.write("verb 3\n")
 
 def inputQuestion(question):
     check = False
@@ -348,7 +354,7 @@ def advancedConf(serverName):
     device = None
     cert_dir = "/etc/openvpn/easy-rsa/pki/issued/"
     cert_file = None
-    key_dir = "/etc/openvp/easy-rsa/pki/private/"
+    key_dir = "/etc/openvpn/easy-rsa/pki/private/"
     key_file = None
     address = None
     mask = None
@@ -373,10 +379,10 @@ def advancedConf(serverName):
     protocolCheck = True
     while protocolCheck == True:
         protocol = input("protocol? (UDP or TCP)")
-        if protocol.strip == "":
+        if protocol.strip() == "":
             protocol = "udp6"
             protocolCheck = False
-        elif protocol != "UDP" or protocol != "udp" or protocol != "TCP" or protocol != "tcp":
+        elif protocol.lower() not in ("udp", "tcp"):
             protocol = "udp6"
             protocolCheck = False
         else:
@@ -385,10 +391,10 @@ def advancedConf(serverName):
     deviceCheck = True
     while deviceCheck == True:
         device = input("device? (tun or tap)")
-        if device.strip == "":
+        if device.strip() == "":
             device = "tun0"
             deviceCheck = False
-        elif device != "TUN" or device != "tun" or device != "TAP" or device != "tap":
+        elif device.lower() not in ("tun", "tap"):
             device = "tun0"
             deviceCheck = False
         else:
@@ -660,19 +666,35 @@ if os.geteuid() == 0:
     """
     #Easy installation or advanced
     while run == True:
-        if serverName == None:
+        if serverName is None:
             serverName = server_name_input()
             print("Choose between easy [1] or advanced [2] configuration")
             print("Easy -> port, protocol, device, server (ip address), log")
             print("Advanced -> Extended configuration")
             print("If you want to change them manually, after script ends go to /etc/openvpn/server.conf")
-            confQues = int(input("Write 1 or 2:"))
 
-            if confQues == 1:
-                easyConf(serverName)
+            confCheck = True
+            while confCheck:
+                confQues = input("Write 1 or 2:")
+                if confQues.strip() == "":
+                    print("Invalid input! Please enter 1 or 2.")
+                elif confQues == "1" or confQues == "2":
+                    confCheck = False
+                else:
+                    print("Invalid input! Please enter 1 or 2.")
+
+                
+
+            if confQues == "1":
+                #easyConf(serverName)
+                port, protocol, device = easyConf(serverName)
+                print(f"Calling usrConfEasy with: {port}, {protocol}, {device}")
+                print("podminka 1")
+                usrConfEasy(port, protocol, device)
                 run = False
-            elif confQues == 2:
-                advancedConf(serverName)
+            elif confQues == "2":
+                port, protocol, device, cipher, gatewayUse = advancedConf(serverName)
+                usrConfAdv(port, protocol, device, cipher, gatewayUse)
                 run = False
             else:
                 pass
@@ -682,14 +704,27 @@ if os.geteuid() == 0:
             print("Easy -> port, protocol, device, server (ip address), log")
             print("Advanced -> Extended configuration")
             print("If you want to change them manually, after script ends go to /etc/openvpn/server.conf")
-            confQues = int(input("Write 1 or 2:"))
+            
+            confCheck = True
+            while confCheck:
+                confQues = input("Write 1 or 2:")
+                if confQues.strip() == "":
+                    print("Invalid input! Please enter 1 or 2.")
+                elif confQues == "1" or confQues == "2":
+                    confCheck = False
+                else:
+                    print("Invalid input! Please enter 1 or 2.")
 
-            if confQues == 1:
+                
+            if confQues == "1":
                 #easyConf(serverName)
                 port, protocol, device = easyConf(serverName)
-                usrConfEasy(port, protocol, device)
+                print(f"Calling usrConfEasy with: {port}, {protocol}, {device}")
+                #usrConfEasy(port, protocol, device)
+                usrConfEasy(1194, "udp", "tun0")
+
                 run = False
-            elif confQues == 2:
+            elif confQues == "2":
                 port, protocol, device, cipher, gatewayUse = advancedConf(serverName)
                 usrConfAdv(port, protocol, device, cipher, gatewayUse)
                 run = False
