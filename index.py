@@ -88,9 +88,21 @@ def dir_struc():
         else:
             print(f"The path '{checkGitInstallEasy}' were not created successfully")
             sys.exit(1)
-
-    os.system("mkdir /etc/openvpn/users")
-    #udelat opravenni
+    
+    serverPath = "/etc/openvpn/server"
+    usersPath = "/etc/openvpn/users"
+    if  os.path.exists(serverPath) and os.path.exists(usersPath):
+        pass
+    else:
+        subprocess.run(["mkdir", "-p", "/etc/openvpn/server"])
+        subprocess.run(["mkdir", "/etc/openvpn/users"])
+        if os.path.exists(serverPath) and os.path.exists(usersPath):
+            print(f"The paths '{serverPath}' and '{usersPath}' were created successfully")
+        else:
+            print(f"The paths '{serverPath}' and '{usersPath}' were not created successfully")
+            sys.exit(1)
+            
+#udelat opravneni na users
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 """
 def rsa_qes():
