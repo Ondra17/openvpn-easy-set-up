@@ -39,7 +39,7 @@ def oneClient():
                 check=True
             )
         except subprocess.CalledProcessError as e:
-            print(f"Chyba při vytváření certifikátu: {e}")
+            print(f"Certificate creation error: {e}")
         
     elif nameQes == "n":
         
@@ -54,7 +54,7 @@ def oneClient():
                 check=True
             )
         except subprocess.CalledProcessError as e:
-            print(f"Chyba při vytváření certifikátu: {e}")
+            print(f"Certificate creation error: {e}")
 
 
 
@@ -68,66 +68,85 @@ def oneClient():
             print("User certificate did not copy!")
 
 def csvAdd():
-    data = pandas.read_csv('create_cert.csv', delimiter=";", encoding='utf-8')
-    data = data.dropna(how='all')
+    path = True
 
-    idx = 0
-    
-    question = str(input("Common Name same as Client Name (yes/no):"))
-    nameQes = inputQuestion(question)
-    
-    for index, line in data.iterrows():
-        idx += 1
+    while path:
+        csvPath = input("Write path to a cvs file:")
+        if os.path.isfile(csvPath):
 
-        print(f'{idx}. -->')
-
-        username = str(line['username']).strip() if pandas.notna(line['username']) and str(line['username']).strip() != "" else None
-
-        if username:
-
-            if nameQes == "y":
-                
-                try:
-                    os.chdir("/etc/openvpn/easy-rsa")
-                    process = subprocess.run(
-                        ["./easyrsa", "gen-req", username, "nopass"],
-                        input=f"{username}\nyes\n",
-                        text=True,
-                        check=True
-                    )
-                except subprocess.CalledProcessError as e:
-                    print(f"Chyba při vytváření certifikátu: {e}")
-                
-            elif nameQes == "n":
-                
-                commonName = input("Enter Common Name: ")
-
-                try:
-                    os.chdir("/etc/openvpn/easy-rsa")
-                    process = subprocess.run(
-                        ["./easyrsa", "gen-req", username, "nopass"],
-                        input=f"{commonName}\n",
-                        text=True,
-                        check=True
-                    )
-                except subprocess.CalledProcessError as e:
-                    print(f"Chyba při vytváření certifikátu: {e}")
+            data = pandas.read_csv(csvPath, delimiter=";", encoding='utf-8')
+            data = data.dropna(how='all')
 
 
+            
+            question = str(input("Common Name same as Client Name (yes/no):"))
+            nameQes = inputQuestion(question)
+            
+            for line in data.itertuples(index=False):
 
-            os.system(f"sudo ./easyrsa sign-req client {username}")
-            os.system(f"mkdir /etc/openvpn/users/{username}")
+                username = str(line.username).strip() if pandas.notna(line.username) and str(line.username).strip() != "" else None
 
-            if os.path.isfile(f"/etc/openvpn/users/{username}"):
-                os.system(f"mv /etc/openvpn/easy-rsa/pki/issued/{username}.crt /etc/openvpn/users/{username}.crt")
-                os.system(f"mv /etc/openvpn/easy-rsa/pki/private/{username}.key /etc/openvpn/users/{username}.key")
-            else:
-                    print("User certificate did not copy!")
+                if username:
 
+                    if nameQes == "y":
+                        
+                        try:
+                            os.chdir("/etc/openvpn/easy-rsa")
+
+                            process = subprocess.Popen(
+                                ["./easyrsa", "gen-req", username, "nopass"],
+                                stdin=subprocess.PIPE,
+                                text=True
+                            )
+                            
+                            process.communicate(input=f"{username}\nyes\n")
+
+                            if process.returncode != 0:
+                                raise subprocess.CalledProcessError(process.returncode, process.args)
+
+                        except subprocess.CalledProcessError as e:
+                            print(f"Certificate creation error: {e}")
+                        createStruc(username)
+                        
+                    elif nameQes == "n":
+                        
+                        commonName = str(input("Enter Common Name: "))
+
+                        try:
+                            os.chdir("/etc/openvpn/easy-rsa")
+
+                            process = subprocess.Popen(
+                                ["./easyrsa", "gen-req", username, "nopass"],
+                                stdin=subprocess.PIPE,
+                                text=True
+                            )
+
+                            process.communicate(input=f"{commonName}\n")
+
+                            if process.returncode != 0:
+                                raise subprocess.CalledProcessError(process.returncode, process.args)
+
+                        except subprocess.CalledProcessError as e:
+                            print(f"Certificate creation error: {e}")
+                        createStruc(username)
+
+
+                else:
+                    print("Skipping empty username")
+                path = False
         else:
-            print("Skipping empty username")
+            print("This path to csv is not existing!")
 
-        
+def createStruc(username):
+    os.system(f"sudo ./easyrsa sign-req client {username}")
+    os.system(f"sudo mkdir /etc/openvpn/users/{username}")
+
+    #if os.path.isfile(f"/etc/openvpn/users/{username}"):
+    os.system(f"sudo mv /etc/openvpn/easy-rsa/pki/issued/{username}.crt /etc/openvpn/users/{username}.crt")
+    os.system(f"sudo mv /etc/openvpn/easy-rsa/pki/private/{username}.key /etc/openvpn/users/{username}.key")
+    print("User certificate were created successfully")
+    #else:
+    #print("User certificate did not copy!")    
 
 
 
