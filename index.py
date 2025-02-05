@@ -560,6 +560,7 @@ def advancedConf(serverName):
 
 def usrConfAdv(port, protocol, device, cipher, gatewayUse):
     servRoute = False
+    addrHost = input("Enter server URL or IP address: ")
 
     if gatewayUse == "y":
         while servRoute == False:
