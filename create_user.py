@@ -73,6 +73,9 @@ def csvAdd():
 
     idx = 0
     
+    question = str(input("Common Name same as Client Name (yes/no):"))
+    nameQes = inputQuestion(question)
+    
     for index, line in data.iterrows():
         idx += 1
 
@@ -81,9 +84,6 @@ def csvAdd():
         username = str(line['username']).strip() if pandas.notna(line['username']) and str(line['username']).strip() != "" else None
 
         if username:
-            
-            question = str(input("Common Name same as Client Name (yes/no):"))
-            nameQes = inputQuestion(question)
 
             if nameQes == "y":
                 
@@ -91,7 +91,7 @@ def csvAdd():
                     os.chdir("/etc/openvpn/easy-rsa")
                     process = subprocess.run(
                         ["./easyrsa", "gen-req", username, "nopass"],
-                        input=f"{username}\n",
+                        input=f"{username}\nyes\n",
                         text=True,
                         check=True
                     )
