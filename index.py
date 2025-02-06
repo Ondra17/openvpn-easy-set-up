@@ -429,11 +429,11 @@ def advancedConf(serverName):
     elif dnsQst == "No" or dnsQst == "n":
         dnsCheck = True
 
-    while dnsCheck == False:
+    while dnsCheck:
         try:
             dns = input("DNS server address (format: 'address'): ")
             ipaddress.IPv4Network(f"{dns}", strict=False)
-            dnsCheck = True
+            dnsCheck = False
         except ValueError:
             print("Wrong Format! Please enter in 'address' format.")
 
@@ -551,8 +551,8 @@ def advancedConf(serverName):
         file.write(f"group {group}\n")
         file.write("keepalive 10 120\n")
         file.write(f"verb {verbLevl}\n")
-        file.write("status /var/log/openvpn/status.log\n")
-        file.write("log /var/log/openvpn/ovpn.log\n")
+        #file.write("status /var/log/openvpn/status.log\n")
+        #file.write("log /var/log/openvpn/ovpn.log\n")
 
     return port, protocol, device, cipherUse, gatewayUse
 
