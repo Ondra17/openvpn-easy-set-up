@@ -4,6 +4,7 @@ import re
 import os
 import sys
 import ipaddress
+import re
 
 #Do you want to update DNF repository
 
@@ -325,6 +326,7 @@ def easyConf(serverName):
 
 def usrConfEasy(port, protocol, device):
     addrHost = input("Enter server URL or IP address: ")
+    protocol = re.sub(r'\d', '', protocol)
 
     os.system("sudo touch /etc/openvpn/client.conf")
     with open("/etc/openvpn/client.conf", "a") as file:
@@ -334,8 +336,6 @@ def usrConfEasy(port, protocol, device):
         file.write(f"dev {device}\n")
         file.write(f"proto {protocol}\n")
         file.write("remote-cert-tls server\n")
-        file.write("cert cert.crt\n")
-        file.write("key key.key\n")
         file.write("persist-tun\n")
         file.write("persist-key\n")
         file.write("verb 3\n")
@@ -515,7 +515,7 @@ def advancedConf(serverName):
             pass
         file.write(f"server {network}\n")
         if dnsCheck == True:
-            file.write(f'push "dhcp-option DNS {dns}"')
+            file.write(f'push "dhcp-option DNS {dns}"\n')
         else:
             pass
         if lanPushUse == "y":
@@ -528,9 +528,9 @@ def advancedConf(serverName):
         else:
             pass
         if cipherUse == "y":
-            file.write("cipher AES-256-CBC")
-            file.write("auth SHA512")
-            file.write("tls-cipher TLS-DHE-RSA-WITH-AES-256-GCM-SHA384:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256:TLS-DHE-RSA-WITH-AES-128-GCM-SHA256:TLS-DHE-RSA-WITH-AES-128-CBC-SHA256")
+            file.write("cipher AES-256-CBC\n")
+            file.write("auth SHA512\n")
+            file.write("tls-cipher TLS-DHE-RSA-WITH-AES-256-GCM-SHA384:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256:TLS-DHE-RSA-WITH-AES-128-GCM-SHA256:TLS-DHE-RSA-WITH-AES-128-CBC-SHA256\n")
         else:
             pass
         if ctoc == "y":
@@ -573,34 +573,34 @@ def usrConfAdv(port, protocol, device, cipher, gatewayUse):
                 print("Wrong format! Please enter in 'address mask' format.") 
     else:
         pass
+    
+    protocol = re.sub(r'\d', '', protocol)
 
 
-    os.system("touch /etc/openvpn/client.conf")
+    os.system("touch /etc/openvpn/client.ovpn")
     with open("/etc/openvpn/client.conf", "a") as file:
         file.write("#Easy configuration\n")
         file.write("client\n")
-        file.write(f"remote {addrHost} {port}")
+        file.write(f"remote {addrHost} {port}\n")
         file.write(f"dev {device}\n")
         file.write(f"proto {protocol}\n")
-        file.write("redirect-gateway")
-        file.write("resolv-retry infinite")
-        file.write("remote-cert-tls server")
+        file.write("redirect-gateway\n")
+        file.write("resolv-retry infinite\n")
+        file.write("remote-cert-tls server\n")
         if cipher == "y":
-            file.write("cipher AES-256-CBC")
-            file.write("auth SHA512")
-            file.write("tls-cipher TLS-DHE-RSA-WITH-AES-256-CBC-SHA")
+            file.write("cipher AES-256-CBC\n")
+            file.write("auth SHA512\n")
+            file.write("tls-cipher TLS-DHE-RSA-WITH-AES-256-CBC-SHA\n")
         else:
             pass
         if gatewayUse == "y":
-            file.write(f"route {serverRoute}")
+            file.write(f"route {serverRoute}\n")
         else: 
             pass
-        file.write("mute-replay-warnings")
-        file.write("cert cert.crt")
-        file.write("key key.key")
-        file.write("persist-tun")
-        file.write("persist-key")
-        file.write("verb 3")
+        file.write("mute-replay-warnings\n")
+        file.write("persist-tun\n")
+        file.write("persist-key\n")
+        file.write("verb 3\n")
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
