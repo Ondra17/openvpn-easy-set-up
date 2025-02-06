@@ -141,12 +141,12 @@ def createStruc(username):
     os.system(f"sudo ./easyrsa sign-req client {username}")
     os.system(f"sudo mkdir /etc/openvpn/users/{username}")
 
-    #if os.path.isfile(f"/etc/openvpn/users/{username}"):
-    os.system(f"sudo mv /etc/openvpn/easy-rsa/pki/issued/{username}.crt /etc/openvpn/users/{username}.crt")
-    os.system(f"sudo mv /etc/openvpn/easy-rsa/pki/private/{username}.key /etc/openvpn/users/{username}.key")
-    print("User certificate were created successfully")
-    #else:
-    #print("User certificate did not copy!")    
+    if os.path.isfile(f"/etc/openvpn/users/{username}"):
+        os.system(f"sudo mv /etc/openvpn/easy-rsa/pki/issued/{username}.crt /etc/openvpn/users/{username}.crt")
+        os.system(f"sudo mv /etc/openvpn/easy-rsa/pki/private/{username}.key /etc/openvpn/users/{username}.key")
+        print("User certificate were created successfully")
+    else:
+        print("User certificate did not copy!")    
 
 
 
