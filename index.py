@@ -11,7 +11,7 @@ import re
 def installation():
     #subprocess.run(["dnf", "update", "-y"])
     subprocess.run(["dnf", "install", "-y", "epel-release"])
-    subprocess.run(["dnf", "install", "-y", "openvpn", "easy-rsa"])
+    subprocess.run(["dnf", "install", "-y", "openvpn"])
 
     easyrsa_path = "/usr/share/easy-rsa/3/easyrsa"
 
@@ -30,7 +30,7 @@ def installation():
     """
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
-
+"""
 def check_easyrsa(easyrsa_path):
     try:
         if not os.path.isfile(easyrsa_path):
@@ -46,7 +46,7 @@ def check_easyrsa(easyrsa_path):
     except Exception as e:
         print(f"An error occurred while checking Easy-RSA: {e}")
         sys.exit(1)  
-
+"""
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def check_openvpn():
@@ -79,6 +79,7 @@ def dir_struc():
             sys.exit(1)
 
     #for EasyRSA repository
+    """
     checkGitInstallEasy = "/opt/easy-rsa"
     if  os.path.exists(checkGitInstallEasy):
         pass
@@ -89,25 +90,24 @@ def dir_struc():
         else:
             print(f"The path '{checkGitInstallEasy}' were not created successfully")
             sys.exit(1)
-    
+    """
+
     serverPath = "/etc/openvpn/server"
     usersPath = "/etc/openvpn/users"
-    if  os.path.exists(serverPath) and os.path.exists(usersPath):
-        pass
+
+    if not os.path.exists(serverPath):
+        subprocess.run(["mkdir", "-p", "/etc/openvpn/server"])
     else:
-        if os.path.exists(serverPath):
-            subprocess.run(["mkdir", "/etc/openvpn/users"])
-        else:
-            pass
-        if os.path.exists(usersPath):
-            subprocess.run(["mkdir", "-p", "/etc/openvpn/server"])
-        else:
-            pass
-        if os.path.exists(serverPath) and os.path.exists(usersPath):
-            print(f"The paths '{serverPath}' and '{usersPath}' were created successfully")
-        else:
-            print(f"The paths '{serverPath}' and '{usersPath}' were not created successfully")
-            sys.exit(1)
+        pass
+    if not os.path.exists(usersPath):
+        subprocess.run(["mkdir", "/etc/openvpn/users"])
+    else:
+        pass
+    if os.path.exists(serverPath) and os.path.exists(usersPath):
+        print(f"The paths '{serverPath}' and '{usersPath}' were created successfully")
+    else:
+        print(f"The paths '{serverPath}' and '{usersPath}' were not created successfully")
+        sys.exit(1)
             
 #udelat opravneni na users
 #-------------------------------------------------------------------------------------------------------------------------------------------------
@@ -170,6 +170,15 @@ def vars_rewrite():
 
 def rsa_set_up():
 
+    os.chdir("/etc/openvpn/")
+    os.system("wget https://github.com/OpenVPN/easy-rsa/releases/download/v3.1.1/EasyRSA-3.1.1.tgz")
+    os.system("tar -xvzf EasyRSA-3.1.1.tgz")
+    os.system("mv EasyRSA-3.1.1 easy-rsa")
+    os.system("rm -rf /etc/openvpn/EasyRSA-3.1.1.tgz")
+    os.chdir("/etc/openvpn/easy-rsa/")
+    os.system("mv vars.example vars")
+
+    """
     rep_easy_rsa = glob.glob("/opt/easy-rsa/*")
     all_files = glob.glob("/usr/share/easy-rsa/3/*")
     subprocess.run(["cp", "-ai"] + all_files + ["/etc/openvpn/easy-rsa/"])
@@ -184,6 +193,7 @@ def rsa_set_up():
 
     subprocess.run(["cp", "/opt/easy-rsa/easyrsa3/vars.example", "/etc/openvpn/easy-rsa/vars.example"])
     subprocess.run(["mv", "/etc/openvpn/easy-rsa/vars.example", "/etc/openvpn/easy-rsa/vars"])
+    """
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 def CA_build(CA_dir):
@@ -207,8 +217,25 @@ def CA_check():
 
 def server_cert_gen(CA_dir, serverName):
 
-        os.chdir(CA_dir)
-        os.system(f'./easyrsa gen-req {serverName} nopass')
+
+        try:
+            os.chdir("/etc/openvpn/easy-rsa")
+            os.chdir(CA_dir)
+
+            process = subprocess.Popen(
+                ["./easyrsa", "gen-req", serverName, "nopass"],
+                stdin=subprocess.PIPE,
+                text=True
+                )
+                                
+            process.communicate(input=f"{serverName}\nyes\n")
+
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(process.returncode, process.args)
+
+        except subprocess.CalledProcessError as e:
+            print(f"Certificate creation error: {e}")
+
         os.system(f'./easyrsa sign-req server {serverName}')
 
 def server_dh_gen(CA_dir):
@@ -346,12 +373,11 @@ def usrConfEasy(port, protocol, device):
         file.write("persist-key\n")
         file.write("verb 3\n")
 
-def inputQuestion(question):
+def inputQuestion():
     check = False
     while check == False:
         try:
-            qes = question
-            qes = qes.lower()
+            qes = input("Type yes or no: ").strip().lower()
             if qes not in ['yes', 'no', 'y', 'n']:
                 raise ValueError("Invalid input. Please type 'yes' or 'no'.")
             check = True
@@ -361,8 +387,19 @@ def inputQuestion(question):
                 pass
         except ValueError as e:
             print(e)
-
     return qes
+
+def inputNumber():
+    while True:
+        try:
+            num = int(input("Level of LOGGING [0-11]: ").strip())
+            if 0 <= num <= 11:
+                return num
+            else:
+                print("Number must be between 0 and 11.")
+        except ValueError:
+            print("Invalid input! Please enter a number between 0 and 11.")
+
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -429,8 +466,9 @@ def advancedConf(serverName):
             print("Wrong format! Please enter in 'address mask' format.") 
 
     
-    question = str(input("Do you want ADD DNS address? (yes/no):"))
-    dnsQst = inputQuestion(question)
+    #question = str(input("Do you want ADD DNS address?"))
+    print("Do you want ADD DNS address?")
+    dnsQst = inputQuestion()
     if dnsQst == "y":
         dnsCheck = True
     elif dnsQst == "No" or dnsQst == "n":
@@ -445,8 +483,9 @@ def advancedConf(serverName):
         except ValueError:
             print("Wrong Format! Please enter in 'address' format.")
 
-    question = str(input("Do you want TLS-SERVER? (yes/no):"))
-    tlsServer = inputQuestion(question)
+    print("Do you want TLS-SERVER?")
+    #question = str(input("Do you want TLS-SERVER? (yes/no):"))
+    tlsServer = inputQuestion()
 
 
     topoCheck = False
@@ -459,33 +498,39 @@ def advancedConf(serverName):
         except ValueError as errorTopo:
             print(errorTopo)
 
-    question = str(input("Do you want allow CLIENT-TO-CLIENT communication? (yes/no)"))
-    ctoc = inputQuestion(question)
+    print("Do you want allow CLIENT-TO-CLIENT communication?")
+    #question = str(input("Do you want allow CLIENT-TO-CLIENT communication? (yes/no)"))
+    ctoc = inputQuestion()
 
-    question = str(input("Do you want allow DUPLICATE-CN? (yes/no)"))
-    dupCN = inputQuestion(question)
+    print("Do you want allow DUPLICATE-CN? (yes/no)")
+    #question = str(input("Do you want allow DUPLICATE-CN? (yes/no)"))
+    dupCN = inputQuestion()
 
-    question = str(input("Do you want PING-TIMER-REM?  (yes/no)"))
-    pingT = inputQuestion(question)
+    print("Do you want PING-TIMER-REM?")
+    #question = str(input("Do you want PING-TIMER-REM?  (yes/no)"))
+    pingT = inputQuestion()
 
     name = str(input("Name of USER for privileges:"))
     group = str(input("Name of GROUP for privileges:"))
 
-    verbLevl = str(input("Level for LOGGING [0-11]: "))
+    verbLevl = inputNumber()
 
-    question = str(input("Do you want connect VPN with internet (push-gateway)(yes/no):"))
-    gatewayUse = inputQuestion(question)
+    print("Do you want connect VPN with internet (push-gateway)")
+    #question = str(input("Do you want connect VPN with internet (push-gateway)(yes/no):"))
+    gatewayUse = inputQuestion()
 
-    question = str(input("Do you want to add CIPHER(yes/no):"))
-    cipherUse = inputQuestion(question)
+    print("Do you want to add CIPHER")
+    #question = str(input("Do you want to add CIPHER(yes/no):"))
+    cipherUse = inputQuestion()
 
     if gatewayUse == "y":
         gateway = '.'.join(address.split('.')[:-1]+["1"])  
     else:
         pass
 
-    question = str(input("Do you want add some LAN (push)(yes/no):"))
-    lanPushUse = inputQuestion(question)
+    print("Do you want add some LAN (push)")
+    #question = str(input("Do you want add some LAN (push)(yes/no):"))
+    lanPushUse = inputQuestion()
 
     if lanPushUse == "yes" or lanPushUse == "y":
         pushCheck = False
@@ -641,7 +686,7 @@ if os.geteuid() == 0:
     easyrsa_path = "/usr/share/easy-rsa/3/easyrsa"
 
     installation()
-    check_easyrsa(easyrsa_path)
+    #check_easyrsa()
     check_openvpn()
     print("Both Easy-RSA and OpenVPN are installed and functioning correctly.")
     dir_struc()
