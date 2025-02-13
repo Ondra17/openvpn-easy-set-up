@@ -95,8 +95,14 @@ def dir_struc():
     if  os.path.exists(serverPath) and os.path.exists(usersPath):
         pass
     else:
-        subprocess.run(["mkdir", "-p", "/etc/openvpn/server"])
-        subprocess.run(["mkdir", "/etc/openvpn/users"])
+        if os.path.exists(serverPath):
+            subprocess.run(["mkdir", "/etc/openvpn/users"])
+        else:
+            pass
+        if os.path.exists(usersPath):
+            subprocess.run(["mkdir", "-p", "/etc/openvpn/server"])
+        else:
+            pass
         if os.path.exists(serverPath) and os.path.exists(usersPath):
             print(f"The paths '{serverPath}' and '{usersPath}' were created successfully")
         else:
@@ -300,8 +306,8 @@ def easyConf(serverName):
         except ValueError:
             print("Wrong format! Please enter in 'address mask' format.") 
 
-    os.system("touch /etc/openvpn/server.conf")
-    with open("/etc/openvpn/server.conf", "a") as file:
+    os.system("touch /etc/openvpn/server/server.conf")
+    with open("/etc/openvpn/server/server.conf", "a") as file:
         file.write("#Easy configuration")
         file.write("mode server \n")
         file.write(f"port {port} \n")
@@ -328,10 +334,10 @@ def usrConfEasy(port, protocol, device):
     addrHost = input("Enter server URL or IP address: ")
     protocol = re.sub(r'\d', '', protocol)
 
-    os.system("sudo touch /etc/openvpn/client.conf")
-    with open("/etc/openvpn/client.conf", "a") as file:
+    os.system("sudo touch /etc/openvpn/client.ovpn")
+    with open("/etc/openvpn/client.ovpn", "a") as file:
         file.write("#Easy configuration\n")
-        file.write("client\n")
+        #file.write("client\n")
         file.write(f"remote {addrHost} {port}\n")
         file.write(f"dev {device}\n")
         file.write(f"proto {protocol}\n")
@@ -374,6 +380,7 @@ def advancedConf(serverName):
     networkCheck = False
     dnsCheck = False
     dns = None
+    dnsCheckAdd = False
 
     portCheck = True
     while portCheck == True:
@@ -425,15 +432,16 @@ def advancedConf(serverName):
     question = str(input("Do you want ADD DNS address? (yes/no):"))
     dnsQst = inputQuestion(question)
     if dnsQst == "y":
-        dnsCheck = False
-    elif dnsQst == "No" or dnsQst == "n":
         dnsCheck = True
+    elif dnsQst == "No" or dnsQst == "n":
+        dnsCheck = False
 
     while dnsCheck:
         try:
             dns = input("DNS server address (format: 'address'): ")
             ipaddress.IPv4Network(f"{dns}", strict=False)
             dnsCheck = False
+            dnsCheckAdd = True
         except ValueError:
             print("Wrong Format! Please enter in 'address' format.")
 
@@ -490,8 +498,8 @@ def advancedConf(serverName):
             except ValueError:
                 print("Wrong format! Please enter in 'address mask' format.") 
 
-    os.system("touch /etc/openvpn/server.conf")
-    with open("/etc/openvpn/server.conf", "a") as file:
+    os.system("touch /etc/openvpn/server/server.conf")
+    with open("/etc/openvpn/server/server.conf", "a") as file:
         file.write("#Advanced configuration\n")
         file.write("mode server\n")
         if tlsServer == "y":
@@ -514,7 +522,7 @@ def advancedConf(serverName):
         elif topology == 4:
             pass
         file.write(f"server {network}\n")
-        if dnsCheck == True:
+        if dnsCheckAdd == True:
             file.write(f'push "dhcp-option DNS {dns}"\n')
         else:
             pass
@@ -551,14 +559,14 @@ def advancedConf(serverName):
         file.write(f"group {group}\n")
         file.write("keepalive 10 120\n")
         file.write(f"verb {verbLevl}\n")
-        #file.write("status /var/log/openvpn/status.log\n")
-        #file.write("log /var/log/openvpn/ovpn.log\n")
+        file.write("status /var/log/openvpn/status.log\n")
+        file.write("log /var/log/openvpn/ovpn.log\n")
 
-    return port, protocol, device, cipherUse, gatewayUse
+    return port, protocol, device, cipherUse, gatewayUse, tlsServer
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
-def usrConfAdv(port, protocol, device, cipher, gatewayUse):
+def usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer):
     servRoute = False
     addrHost = input("Enter server URL or IP address: ")
 
@@ -578,9 +586,12 @@ def usrConfAdv(port, protocol, device, cipher, gatewayUse):
 
 
     os.system("touch /etc/openvpn/client.ovpn")
-    with open("/etc/openvpn/client.conf", "a") as file:
+    with open("/etc/openvpn/client.ovpn", "a") as file:
         file.write("#Easy configuration\n")
-        file.write("client\n")
+        if tlsServer == "y":
+            file.write("client\n")
+        else:
+            pass
         file.write(f"remote {addrHost} {port}\n")
         file.write(f"dev {device}\n")
         file.write(f"proto {protocol}\n")
@@ -590,7 +601,7 @@ def usrConfAdv(port, protocol, device, cipher, gatewayUse):
         if cipher == "y":
             file.write("cipher AES-256-CBC\n")
             file.write("auth SHA512\n")
-            file.write("tls-cipher TLS-DHE-RSA-WITH-AES-256-CBC-SHA\n")
+            file.write("tls-cipher TLS-DHE-RSA-WITH-AES-256-GCM-SHA384:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256:TLS-DHE-RSA-WITH-AES-128-GCM-SHA256:TLS-DHE-RSA-WITH-AES-128-CBC-SHA256\n")
         else:
             pass
         if gatewayUse == "y":
@@ -706,8 +717,8 @@ if os.geteuid() == 0:
                 usrConfEasy(port, protocol, device)
                 run = False
             elif confQues == "2":
-                port, protocol, device, cipher, gatewayUse = advancedConf(serverName)
-                usrConfAdv(port, protocol, device, cipher, gatewayUse)
+                port, protocol, device, cipher, gatewayUse, tlsServer = advancedConf(serverName)
+                usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer)
                 run = False
             else:
                 pass
@@ -738,8 +749,8 @@ if os.geteuid() == 0:
 
                 run = False
             elif confQues == "2":
-                port, protocol, device, cipher, gatewayUse = advancedConf(serverName)
-                usrConfAdv(port, protocol, device, cipher, gatewayUse)
+                port, protocol, device, cipher, gatewayUse, tlsServer = advancedConf(serverName)
+                usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer)
                 run = False
             else:
                 pass
