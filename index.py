@@ -67,16 +67,6 @@ def check_openvpn():
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def dir_struc():
-    if  os.path.exists("/etc/openvpn/easy-rsa/keys"):
-        pass
-    else:
-        subprocess.run(["mkdir", "-p", "/etc/openvpn/easy-rsa/keys"])
-        checkKeys = "/etc/openvpn/easy-rsa/keys"
-        if os.path.exists(checkKeys):
-            print(f"The path '{checkKeys}' were created successfully")
-        else:
-            print(f"The path '{checkKeys}' were not created successfully")
-            sys.exit(1)
 
     #for EasyRSA repository
     """
