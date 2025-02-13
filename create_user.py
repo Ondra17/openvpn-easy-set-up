@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 import pandas
+import re
 
 def inputQuestion(question):
     check = False
@@ -62,8 +63,8 @@ def oneClient():
     os.system(f"mkdir /etc/openvpn/users/{clientName}")
 
     if os.path.isfile(f"/etc/openvpn/users/{clientName}"):
-        os.system(f"mv /etc/openvpn/easy-rsa/pki/issued/{clientName}.crt /etc/openvpn/users/{clientName}.crt")
-        os.system(f"mv /etc/openvpn/easy-rsa/pki/private/{clientName}.key /etc/openvpn/users/{clientName}.key")
+        os.system(f"cp /etc/openvpn/easy-rsa/pki/issued/{clientName}.crt /etc/openvpn/users/{clientName}.crt")
+        os.system(f"cp /etc/openvpn/easy-rsa/pki/private/{clientName}.key /etc/openvpn/users/{clientName}.key")
     else:
             print("User certificate did not copy!")
 
@@ -106,7 +107,9 @@ def csvAdd():
 
                         except subprocess.CalledProcessError as e:
                             print(f"Certificate creation error: {e}")
+
                         createStruc(username)
+                        addCert(username)
                         
                     elif nameQes == "n":
                         
@@ -128,7 +131,8 @@ def csvAdd():
 
                         except subprocess.CalledProcessError as e:
                             print(f"Certificate creation error: {e}")
-                        createStruc(username)
+                    createStruc(username)
+                    addCert(username)
 
 
                 else:
@@ -142,8 +146,8 @@ def createStruc(username):
     os.system(f"sudo mkdir /etc/openvpn/users/{username}")
 
     if os.path.isfile(f"/etc/openvpn/users/{username}"):
-        os.system(f"sudo mv /etc/openvpn/easy-rsa/pki/issued/{username}.crt /etc/openvpn/users/{username}.crt")
-        os.system(f"sudo mv /etc/openvpn/easy-rsa/pki/private/{username}.key /etc/openvpn/users/{username}.key")
+        os.system(f"sudo cp /etc/openvpn/easy-rsa/pki/issued/{username}.crt /etc/openvpn/users/{username}.crt")
+        os.system(f"sudo cp /etc/openvpn/easy-rsa/pki/private/{username}.key /etc/openvpn/users/{username}.key")
         print("User certificate were created successfully")
         os.system(f"cp /etc/openvpn/easy-rsa/pki/ca.crt /etc/openvpn/users/{username}")
         os.system(f"cp /etc/openvpn/user.ovpn /etc/openvpn/users/{username}")
@@ -151,6 +155,15 @@ def createStruc(username):
     else:
         print("User certificate did not copy!")    
 
+def addCert(username):
+    with open(f"/etc/openvpn/users/{username}/ca.crt", "r") as sourceCA, open(f"/etc/openvpn/users/{username}/{username}.key", "r") as sourceKey, open(f"/etc/openvpn/users/{username}/{username}.ovpn", "a") as usrFile:
+        usrFile.write("<ca>")
+        usrFile.write(sourceCA.read())
+        usrFile.write("</ca>")
+
+        usrFile.write("<key>")
+        usrFile.write(sourceKey.read())
+        usrFile.write("</key>")
 
 
 
