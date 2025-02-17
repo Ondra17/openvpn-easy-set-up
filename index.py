@@ -49,6 +49,18 @@ def check_easyrsa(easyrsa_path):
 """
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
+def ipForwardinf():
+    while True:
+        forw = str(input("Do you want to enable IP forwarding? [yes/no]:"))
+        if forw == "yes" or forw == "y":
+            os.system('echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf')
+            return True
+        elif forw == "no" or forw == "n":
+            return True
+        else:
+            print("Invalid input. Please enter 'y' or 'n'.")
+    
+
 def check_openvpn():
     try:
         result = subprocess.run(["openvpn", "--version"], text=True)
@@ -169,7 +181,7 @@ def rsa_set_up():
     os.system("rm -rf /etc/openvpn/EasyRSA-3.1.1.tgz")
     os.chdir("/etc/openvpn/easy-rsa/")
     os.system("mv vars.example vars")
-    os.system("mv vars pki")
+    os.system("mv vars pki/vars")
 
     """
     rep_easy_rsa = glob.glob("/opt/easy-rsa/*")
@@ -384,7 +396,7 @@ def inputQuestion():
             if qes == "yes" or qes == "y":
                 qes = "y"
             else:
-                pass
+                qes = "n"
         except ValueError as e:
             print(e)
     return qes
@@ -465,26 +477,8 @@ def advancedConf(serverName):
         except ValueError:
             print("Wrong format! Please enter in 'address mask' format.") 
 
-    
-    #question = str(input("Do you want ADD DNS address?"))
-    print("Do you want ADD DNS address?")
-    dnsQst = inputQuestion()
-    if dnsQst == "y":
-        dnsCheck = True
-    elif dnsQst == "No" or dnsQst == "n":
-        dnsCheck = False
 
-    while dnsCheck:
-        try:
-            dns = input("DNS server address (format: 'address'): ")
-            ipaddress.IPv4Network(f"{dns}", strict=False)
-            dnsCheck = False
-            dnsCheckAdd = True
-        except ValueError:
-            print("Wrong Format! Please enter in 'address' format.")
-
-    print("Do you want TLS-SERVER?")
-    #question = str(input("Do you want TLS-SERVER? (yes/no):"))
+    print("Do you want TLS-SERVER? [yes/no]")
     tlsServer = inputQuestion()
 
 
@@ -498,16 +492,13 @@ def advancedConf(serverName):
         except ValueError as errorTopo:
             print(errorTopo)
 
-    print("Do you want allow CLIENT-TO-CLIENT communication?")
-    #question = str(input("Do you want allow CLIENT-TO-CLIENT communication? (yes/no)"))
+    print("Do you want allow CLIENT-TO-CLIENT communication? [yes/no]")
     ctoc = inputQuestion()
 
-    print("Do you want allow DUPLICATE-CN? (yes/no)")
-    #question = str(input("Do you want allow DUPLICATE-CN? (yes/no)"))
+    print("Do you want allow DUPLICATE-CN? [yes/no]")
     dupCN = inputQuestion()
 
-    print("Do you want PING-TIMER-REM?")
-    #question = str(input("Do you want PING-TIMER-REM?  (yes/no)"))
+    print("Do you want PING-TIMER-REM? [yes/no]")
     pingT = inputQuestion()
 
     name = str(input("Name of USER for privileges:"))
@@ -515,12 +506,8 @@ def advancedConf(serverName):
 
     verbLevl = inputNumber()
 
-    print("Do you want connect VPN with internet (push-gateway)")
-    #question = str(input("Do you want connect VPN with internet (push-gateway)(yes/no):"))
-    gatewayUse = inputQuestion()
 
-    print("Do you want to add CIPHER")
-    #question = str(input("Do you want to add CIPHER(yes/no):"))
+    print("Do you want to add CIPHER [yes/no]")
     cipherUse = inputQuestion()
 
     if gatewayUse == "y":
@@ -528,11 +515,27 @@ def advancedConf(serverName):
     else:
         pass
 
-    print("Do you want add some LAN (push)")
-    #question = str(input("Do you want add some LAN (push)(yes/no):"))
+    print("Do you want connect VPN with internet (push-gateway)")
+    gatewayUse = inputQuestion()
+
+    print("Do you want to redirect all trafict throught the VPN? (Full Tunnel) [yes/no]")
+    redirectGateway = inputQuestion()
+    if redirectGateway == "y" or redirectGateway == "yes":
+        redirectGateway = "y"
+        while dnsCheck:
+            try:
+                dns = input("DNS server address (format: 'address'): ")
+                ipaddress.IPv4Network(f"{dns}", strict=False)
+                dnsCheck = False
+                dnsCheckAdd = True
+            except ValueError:
+                print("Wrong Format! Please enter in 'address' format.")
+    else:
+        pass
+    print("Do you want redirect olny a specific networks? (Split Tunnel) [yes/no]")
     lanPushUse = inputQuestion()
 
-    if lanPushUse == "yes" or lanPushUse == "y":
+    if lanPushUse == "y":
         pushCheck = False
         while pushCheck == False:
             try:
@@ -541,7 +544,26 @@ def advancedConf(serverName):
                 ipaddress.IPv4Network(f"{lanAddress}/{lanMask}", strict=False)
                 pushCheck = True
             except ValueError:
-                print("Wrong format! Please enter in 'address mask' format.") 
+                print("Wrong format! Please enter in 'address mask' format.")
+
+    if redirectGateway == "n":
+            print("Do you want ADD DNS address?")
+            dnsQst = inputQuestion()
+            if dnsQst == "y":
+                dnsCheck = True
+            elif dnsQst == "No" or dnsQst == "n":
+                dnsCheck = False
+
+            while dnsCheck:
+                try:
+                    dns = input("DNS server address (format: 'address'): ")
+                    ipaddress.IPv4Network(f"{dns}", strict=False)
+                    dnsCheck = False
+                    dnsCheckAdd = True
+                except ValueError:
+                    print("Wrong Format! Please enter in 'address' format.")
+    else:
+        pass
 
     os.system("touch /etc/openvpn/server/server.conf")
     with open("/etc/openvpn/server/server.conf", "a") as file:
@@ -567,7 +589,7 @@ def advancedConf(serverName):
         elif topology == 4:
             pass
         file.write(f"server {network}\n")
-        if dnsCheckAdd == True:
+        if dnsCheckAdd == True and redirectGateway == "n":
             file.write(f'push "dhcp-option DNS {dns}"\n')
         else:
             pass
@@ -577,7 +599,11 @@ def advancedConf(serverName):
             pass
         if gatewayUse == "y":
             file.write(f"push route-gateway {gateway}")
-            file.write("redirect-gateway")
+        else:
+            pass
+        if redirectGateway == "y" and dnsCheckAdd == False:
+            file.write('push "redirect-gateway def1"')
+            file.write(f'push "dhcp-option DNS {dns}"\n')
         else:
             pass
         if cipherUse == "y":
@@ -607,7 +633,7 @@ def advancedConf(serverName):
         file.write("status /var/log/openvpn/status.log\n")
         file.write("log /var/log/openvpn/ovpn.log\n")
 
-    return port, protocol, device, cipherUse, gatewayUse, tlsServer, name, group
+    return port, protocol, device, cipherUse, gatewayUse, tlsServer, name, group, redirectGateway
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -673,6 +699,24 @@ def server_name_input():
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
+def ipForwardinf(redirectGateway):
+    while True:
+        if redirectGateway == "n":
+            forw = str(input("Do you want to enable IP forwarding? [yes/no]:"))
+            if forw == "yes" or forw == "y":
+                os.system('echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf')
+                return True
+            elif forw == "no" or forw == "n":
+                return True
+            else:
+                print("Invalid input. Please enter 'y' or 'n'.")
+        else:
+            os.system('echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf')
+            os.system("iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE")
+            return True
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------
+
 def setRights(name, group, device):
     #rights for log files
     os.system(f"chown {name}:{group} /var/log/openvpn/*")
@@ -680,6 +724,8 @@ def setRights(name, group, device):
     #rights for device
     os.system(f"chown {name}:{group} /dev/net/{device}")
     os.system(f"chmod 0666 /dev/net/{device}")
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def serverStart():
     print("\n---------- Starting OpenVPN ----------\n")
@@ -775,7 +821,7 @@ if os.geteuid() == 0:
                 usrConfEasy(port, protocol, device)
                 run = False
             elif confQues == "2":
-                port, protocol, device, cipher, gatewayUse, tlsServer = advancedConf(serverName)
+                port, protocol, device, cipher, gatewayUse, tlsServer, name, group, redirectGateway= advancedConf(serverName)
                 usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer)
                 run = False
             else:
@@ -807,12 +853,14 @@ if os.geteuid() == 0:
 
                 run = False
             elif confQues == "2":
-                port, protocol, device, cipher, gatewayUse, tlsServer, name, group = advancedConf(serverName)
+                port, protocol, device, cipher, gatewayUse, tlsServer, name, group, redirectGateway = advancedConf(serverName)
                 usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer)
                 run = False
             else:
                 pass
     
+    ipForwardinf(redirectGateway)
+
     if os.path.exists(f"/etc/openvpn/easy-rsa/pki") and os.path.exists("/etc/openvpn/server/server.conf") and os.path.exists("/etc/openvpn/easy-rsa/pki/private/user.conf"):
         setRights(name, group, device)
         serverStart()
@@ -850,7 +898,7 @@ else:
     tlsServeCheck = False
     while tlsServeCheck == False:
         try:
-            tlsServe = str(input("Do you want TLS-SERVER? (yes/no):"))
+            tlsServe = str(input("Do you want TLS-SERVER? [yes/no]:"))
             tlsServe = tlsServe.lower()
             if tlsServe not in ['yes', 'no', 'y', 'n']:
                 raise ValueError("Invalid input. Please type 'yes' or 'no'.")
