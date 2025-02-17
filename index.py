@@ -116,6 +116,8 @@ def rsa_qes():
 
 def vars_rewrite():
 
+    print("------------ Modify vars file ------------")
+
     rsa_country=input(str("Country:"))
     rsa_province=input(str("Province:"))
     rsa_city=input(str("City:"))
@@ -167,6 +169,7 @@ def rsa_set_up():
     os.system("rm -rf /etc/openvpn/EasyRSA-3.1.1.tgz")
     os.chdir("/etc/openvpn/easy-rsa/")
     os.system("mv vars.example vars")
+    os.system("mv vars pki")
 
     """
     rep_easy_rsa = glob.glob("/opt/easy-rsa/*")
@@ -187,6 +190,7 @@ def rsa_set_up():
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 def CA_build(CA_dir):
+    print("\n---------- Building new Certification Authority ----------\n")
     CA_dir = '/etc/openvpn/easy-rsa'
     os.chdir(CA_dir)
     os.system('./easyrsa init-pki')
@@ -209,6 +213,7 @@ def server_cert_gen(CA_dir, serverName):
 
 
         try:
+            print("\n---------- Generating new server certificate ----------\n")
             os.chdir("/etc/openvpn/easy-rsa")
             os.chdir(CA_dir)
 
@@ -229,13 +234,14 @@ def server_cert_gen(CA_dir, serverName):
         os.system(f'./easyrsa sign-req server {serverName}')
 
 def server_dh_gen(CA_dir):
-
-        os.chdir(CA_dir)
-        os.system('./easyrsa gen-dh')
+    print("\n---------- generating Diffie-Hellman parameter ----------\n")
+    os.chdir(CA_dir)
+    os.system('./easyrsa gen-dh')
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def log_create():
+    print("\n---------- Creating logs file ----------\n")
 
     logFir = False
     logSec = False
@@ -265,6 +271,7 @@ def log_create():
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def easyConf(serverName):
+    print("\n---------- Creating server configuration ----------\n")
     port = None
     protocol = None
     device = None
@@ -294,10 +301,10 @@ def easyConf(serverName):
     while protocolCheck == True:
         protocol = input("protocol? (UDP or TCP)")
         if protocol.strip() == "":
-            protocol = "udp6"
+            protocol = "udp"
             protocolCheck = False
         elif protocol.lower() not in ("udp", "tcp"):
-            protocol = "udp6"
+            protocol = "udp"
             protocolCheck = False
         else:
             pass
@@ -348,6 +355,7 @@ def easyConf(serverName):
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def usrConfEasy(port, protocol, device):
+    print("\n---------- Creating users configuration ----------\n")
     addrHost = input("Enter server URL or IP address: ")
     protocol = re.sub(r'\d', '', protocol)
 
@@ -394,6 +402,7 @@ def inputNumber():
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def advancedConf(serverName):
+    print("\n---------- Creating server configuration ----------\n")
     port = None
     protocol = None
     device = None
@@ -426,10 +435,10 @@ def advancedConf(serverName):
     while protocolCheck == True:
         protocol = input("protocol? (UDP or TCP)")
         if protocol.strip() == "":
-            protocol = "udp6"
+            protocol = "udp"
             protocolCheck = False
         elif protocol.lower() not in ("udp", "tcp"):
-            protocol = "udp6"
+            protocol = "udp"
             protocolCheck = False
         else:
             pass
@@ -602,6 +611,7 @@ def advancedConf(serverName):
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer):
+    print("\n---------- Creating users configuration ----------\n")
     servRoute = False
     addrHost = input("Enter server URL or IP address: ")
 
@@ -663,6 +673,7 @@ def server_name_input():
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def serverStart():
+    print("\n---------- Starting OpenVPN ----------\n")
     os.system("systemctl start openvpn-server@server")
     os.system("systemctl status openvpn-server@server")
 #-------------------------------------------------------------------------------------------------------------------------------------------------
@@ -698,6 +709,7 @@ if os.geteuid() == 0:
     if os.path.exists("/etc/openvpn/easy-rsa/pki/ca.crt"): 
         pass
     else:   
+
         CA_build(CA_dir)
     
 
