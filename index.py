@@ -320,6 +320,9 @@ def easyConf(serverName):
             deviceCheck = False
         else:
             pass
+    
+    name = str(input("Name of USER for privileges:"))
+    group = str(input("Name of GROUP for privileges:"))
 
     while networkCheck == False:
         try:
@@ -342,20 +345,19 @@ def easyConf(serverName):
         file.write(f"key /etc/openvpn/easy-rsa/pki/private/{serverName}.key\n")
         file.write("dh /etc/openvpn/easy-rsa/pki/dh.pem\n")
         file.write(f"server {network}\n")
+        file.write(f"user {name}\n")
+        file.write(f"group {group}\n")
         file.write("persist-tun\n")
         file.write("persist-key\n")
         file.write("verb 3\n")
         file.write("status /var/log/openvpn/status.log\n")
         file.write("log /var/log/openvpn/ovpn.log")
 
-    print(f"Returning values: {port}, {protocol}, {device}")
-
-    return port, protocol, device
+    return port, protocol, device, name, group
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def usrConfEasy(port, protocol, device):
-    print("\n---------- Creating users configuration ----------\n")
     addrHost = input("Enter server URL or IP address: ")
     protocol = re.sub(r'\d', '', protocol)
 
@@ -402,7 +404,6 @@ def inputNumber():
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def advancedConf(serverName):
-    print("\n---------- Creating server configuration ----------\n")
     port = None
     protocol = None
     device = None
@@ -606,7 +607,7 @@ def advancedConf(serverName):
         file.write("status /var/log/openvpn/status.log\n")
         file.write("log /var/log/openvpn/ovpn.log\n")
 
-    return port, protocol, device, cipherUse, gatewayUse, tlsServer
+    return port, protocol, device, cipherUse, gatewayUse, tlsServer, name, group
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -672,9 +673,18 @@ def server_name_input():
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
+def setRights(name, group, device):
+    #rights for log files
+    os.system(f"chown {name}:{group} /var/log/openvpn/*")
+    os.system(f"chmod 644 /var/log/openvpn/*")
+    #rights for device
+    os.system(f"chown {name}:{group} /dev/net/{device}")
+    os.system(f"chmod 0666 /dev/net/{device}")
+
 def serverStart():
     print("\n---------- Starting OpenVPN ----------\n")
     os.system("systemctl start openvpn-server@server")
+    os.system("systemctl enable openvpn-server@server")
     os.system("systemctl status openvpn-server@server")
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------     Vecicky        -----------------------------------------------------------------------------------
@@ -738,6 +748,7 @@ if os.geteuid() == 0:
     #Easy installation or advanced
     while run == True:
         if serverName is None:
+            print("---------- Creating configuration for server ----------")
             serverName = server_name_input()
             print("Choose between easy [1] or advanced [2] configuration")
             print("Easy -> port, protocol, device, server (ip address), log")
@@ -770,7 +781,7 @@ if os.geteuid() == 0:
             else:
                 pass
         else:
-    
+            print("---------- Creating configuration for server ----------")
             print("Choose between easy [1] or advanced [2] configuration")
             print("Easy -> port, protocol, device, server (ip address), log")
             print("Advanced -> Extended configuration")
@@ -789,21 +800,22 @@ if os.geteuid() == 0:
                 
             if confQues == "1":
                 #easyConf(serverName)
-                port, protocol, device = easyConf(serverName)
+                port, protocol, device, name, group = easyConf(serverName)
                 print(f"Calling usrConfEasy with: {port}, {protocol}, {device}")
                 #usrConfEasy(port, protocol, device)
                 usrConfEasy(1194, "udp", "tun0")
 
                 run = False
             elif confQues == "2":
-                port, protocol, device, cipher, gatewayUse, tlsServer = advancedConf(serverName)
+                port, protocol, device, cipher, gatewayUse, tlsServer, name, group = advancedConf(serverName)
                 usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer)
                 run = False
             else:
                 pass
     
-    #if os.path.exists(f"/etc/openvpn/easy-rsa/pki") and os.path.exists("/etc/openvpn/server.conf") and os.path.exists("/etc/openvpn/easy-rsa/pki/private/user.conf")
-        #serverStart()
+    if os.path.exists(f"/etc/openvpn/easy-rsa/pki") and os.path.exists("/etc/openvpn/server/server.conf") and os.path.exists("/etc/openvpn/easy-rsa/pki/private/user.conf"):
+        setRights(name, group, device)
+        serverStart()
 
 else:
     print("ERROR: You need sudo rights!")
