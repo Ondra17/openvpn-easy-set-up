@@ -3,6 +3,7 @@ import sys
 import subprocess
 import pandas
 import re
+import pexpect
 
 def inputQuestion():
     check = False
@@ -90,7 +91,7 @@ def csvAdd():
                     if username:
 
                         if nameQes == "y":
-                            
+
                             try:
                                 os.chdir("/etc/openvpn/easy-rsa")
 
@@ -100,7 +101,7 @@ def csvAdd():
                                     text=True
                                 )
                                 
-                                process.communicate(input=f"{username}\nyes\n")
+                                process.communicate(input=f"{username}\n")
 
                                 if process.returncode != 0:
                                     raise subprocess.CalledProcessError(process.returncode, process.args)
@@ -156,7 +157,7 @@ def createStruc(username):
             f"sudo cp /etc/openvpn/easy-rsa/pki/issued/{username}.crt /etc/openvpn/users/{username}/{username}.crt",
             f"sudo cp /etc/openvpn/easy-rsa/pki/private/{username}.key /etc/openvpn/users/{username}/{username}.key",
             f"cp /etc/openvpn/easy-rsa/pki/ca.crt /etc/openvpn/users/{username}",
-            f"cp /etc/openvpn/user.ovpn /etc/openvpn/users/{username}"
+            f"cp /etc/openvpn/client.ovpn /etc/openvpn/users/{username}/client.ovpn"
         ]
 
         for cmd in cmds:
@@ -168,22 +169,22 @@ def createStruc(username):
         print("User certificates were not copied!")    
 
 def addCert(username):
-    with open(f"/etc/openvpn/users/{username}/ca.crt", "r") as sourceCA, open(f"/etc/openvpn/users/{username}/{username}.crt", "r") as sourceCrt, open(f"/etc/openvpn/users/{username}/{username}.key", "r") as sourceKey, open(f"/etc/openvpn/users/{username}/{username}.ovpn", "a") as usrFile:
+    with open(f"/etc/openvpn/users/{username}/ca.crt", "r") as sourceCA, open(f"/etc/openvpn/users/{username}/{username}.crt", "r") as sourceCrt, open(f"/etc/openvpn/users/{username}/{username}.key", "r") as sourceKey, open(f"/etc/openvpn/users/{username}/client.ovpn", "a") as usrConf:
         content = sourceCrt.read()
-        userCRT = re.search(r"(-----BEGIN CERTIFICATE-----*?-----END CERTIFICATE-----)", content, re.DOTALL)
+        userCRT = re.search(r"(-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----)", content, re.DOTALL)
         
-        usrFile.write("<ca>")
-        usrFile.write(sourceCA.read())
-        usrFile.write("</ca>")
+        #usrConf.write("<ca>")
+        #usrConf.write(sourceCA.read())
+        #usrConf.write("</ca>")
 
-        usrFile.write("<ca>\n" + sourceCA.read() + "\n</ca>\n")
-        usrFile.write("<cert>\n" + userCRT.group(1) + "\n</cert>\n")
-        usrFile.write("<key>\n" + sourceKey.read() + "\n</key>\n")
+        usrConf.write("<ca>\n" + sourceCA.read() + "\n</ca>\n")
+        usrConf.write("<cert>\n" + userCRT.group(1) + "\n</cert>\n")
+        usrConf.write("<key>\n" + sourceKey.read() + "\n</key>\n")
 
-
-        usrFile.write("<key>")
-        usrFile.write(sourceKey.read())
-        usrFile.write("</key>")
+    
+        #usrConf.write("<key>")
+        #usrConf.write(sourceKey.read())
+        #usrConf.write("</key>")
 
 
 
