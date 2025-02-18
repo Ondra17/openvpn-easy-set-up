@@ -3,7 +3,6 @@ import sys
 import subprocess
 import pandas
 import re
-import pexpect
 
 def inputQuestion():
     check = False
@@ -25,7 +24,7 @@ def inputQuestion():
 
 def oneClient():
 
-    clientName = str(input("Enter Client Name:"))
+    username = str(input("Enter Client Name:"))
 
     print("Common Name same as Client Name?")
     nameQes = inputQuestion()
@@ -35,8 +34,8 @@ def oneClient():
         try:
             os.chdir("/etc/openvpn/easy-rsa")
             process = subprocess.run(
-                ["./easyrsa", "gen-req", clientName, "nopass"],
-                input=f"{clientName}\n",
+                ["./easyrsa", "gen-req", username, "nopass"],
+                input=f"{username}\n",
                 text=True,
                 check=True
             )
@@ -50,7 +49,7 @@ def oneClient():
         try:
             os.chdir("/etc/openvpn/easy-rsa")
             process = subprocess.run(
-                ["./easyrsa", "gen-req", clientName, "nopass"],
+                ["./easyrsa", "gen-req", username, "nopass"],
                 input=f"{commonName}\n",
                 text=True,
                 check=True
@@ -58,17 +57,20 @@ def oneClient():
         except subprocess.CalledProcessError as e:
             print(f"Certificate creation error: {e}")
 
+    createStruc(username)
+    addCert(username)
 
+    """
+    os.system(f"sudo ./easyrsa sign-req client {username}")
+    os.system(f"mkdir /etc/openvpn/users/{username}")
 
-    os.system(f"sudo ./easyrsa sign-req client {clientName}")
-    os.system(f"mkdir /etc/openvpn/users/{clientName}")
-
-    if os.path.isfile(f"/etc/openvpn/users/{clientName}"):
-        os.system(f"cp /etc/openvpn/easy-rsa/pki/issued/{clientName}.crt /etc/openvpn/users/{clientName}.crt")
-        os.system(f"cp /etc/openvpn/easy-rsa/pki/private/{clientName}.key /etc/openvpn/users/{clientName}.key")
+    if os.path.isfile(f"/etc/openvpn/users/{username}"):
+        os.system(f"cp /etc/openvpn/easy-rsa/pki/issued/{username}.crt /etc/openvpn/users/{username}.crt")
+        os.system(f"cp /etc/openvpn/easy-rsa/pki/private/{username}.key /etc/openvpn/users/{username}.key")
     else:
             print("User certificate did not copy!")
-
+    """
+    
 def csvAdd():
     path = True
 
