@@ -15,19 +15,7 @@ def installation():
 
     #easyrsa_path = "/usr/share/easy-rsa/3/easyrsa"
 
-#-------------------------------------------------------------------------------------------------------------------------------------------------
-
-def ipForwardinf():
-    while True:
-        forw = str(input("Do you want to enable IP forwarding? [yes/no]:"))
-        if forw == "yes" or forw == "y":
-            os.system('echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf')
-            return True
-        elif forw == "no" or forw == "n":
-            return True
-        else:
-            print("Invalid input. Please enter 'y' or 'n'.")
-    
+#-------------------------------------------------------------------------------------------------------------------------------------------------    
 
 def check_openvpn():
     try:
