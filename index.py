@@ -662,6 +662,8 @@ def serverStart():
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 if os.geteuid() == 0:
+    confDone = False
+    varsDone = False
     run = True
     serverName = None
     CA_dir = '/etc/openvpn/easy-rsa'
@@ -673,45 +675,76 @@ if os.geteuid() == 0:
     print("Both Easy-RSA and OpenVPN are installed and functioning correctly.")
     dir_struc()
 
-    rsa_set_up()
-    vars_rewrite()
+    if os.path.isfile("/etc/openvpn/server") and os.path.isfile("/etc/openvpn/users")
+        rsa_set_up()
+    else:
+        pass
+    
+    if os.path.isfile('/etc/openvpn/easy-rsa/vars'):
+        with open('/etc/openvpn/easy-rsa/vars', 'r') as varsFile:
+            content = varsFile.read()
+            if 'done' in content:
+                print("Vars file already modified")
+                varsDone = True
+            else:
+                vars_rewrite()
+                varsDone = True
+    #tady by sel udela while mozna
     CA_build(CA_dir)
     CA_check()
+    
     server_dh_gen(CA_dir)
     log_create()
-    serverName = server_name_input()
-    server_cert_gen(CA_dir, serverName)
+    if os.path.isfile("/etc/openvpn/easy-rsa/pki/vars")
+        serverName = server_name_input()
+        server_cert_gen(CA_dir, serverName)
+    else:
+        print("Vars file were not moved into /etc/openvpn/easy-rsa/pki/vars")
+        sys.exit(1)
 
-    while run:
-        print("---------- Creating configuration for server ----------")
-        print("Choose between easy [1] or advanced [2] configuration")
-        print("Easy -> port, protocol, device, server (ip address), log")
-        print("Advanced -> Extended configuration")
-        print("If you want to change them manually, after script ends go to /etc/openvpn/server.conf")
+    if serverName is not None:
+        while run:
+            print("---------- Creating configuration for server ----------")
+            print("Choose between easy [1] or advanced [2] configuration")
+            print("Easy -> port, protocol, device, server (ip address), log")
+            print("Advanced -> Extended configuration")
+            print("If you want to change them manually, after script ends go to /etc/openvpn/server.conf")
 
-        confCheck = True
-        while confCheck:
-            confQues = input("Write 1 or 2:")
-            if confQues.strip() == "":
-                print("Invalid input! Please enter 1 or 2.")
-            elif confQues == "1" or confQues == "2":
-                confCheck = False
-            else:
-                print("Invalid input! Please enter 1 or 2.")
+            confCheck = True
+            while confCheck:
+                confQues = input("Write 1 or 2:")
+                if confQues.strip() == "":
+                    print("Invalid input! Please enter 1 or 2.")
+                elif confQues == "1" or confQues == "2":
+                    confCheck = False
+                else:
+                    print("Invalid input! Please enter 1 or 2.")
 
 
-            if confQues == "1":
-                port, protocol, device = easyConf(serverName)
-                usrConfEasy(port, protocol, device)
-                run = False
-            elif confQues == "2":
-                port, protocol, device, cipherUse, gatewayUse, tlsServer, redirectGateway = advancedConf(serverName)
-                usrConfAdv(port, protocol, device, cipherUse, gatewayUse)
-                ipForwardinf(redirectGateway)
-                run = False
+                if confQues == "1":
+                    port, protocol, device = easyConf(serverName)
+                    usrConfEasy(port, protocol, device)
+                    run = False
+                    confDone = True
+                elif confQues == "2":
+                    port, protocol, device, cipherUse, gatewayUse, tlsServer, redirectGateway = advancedConf(serverName)
+                    usrConfAdv(port, protocol, device, cipherUse, gatewayUse)
+                    ipForwardinf(redirectGateway)
+                    run = False
+                    confDone = True
+        else:
+            print("You must enter Server Name!")
+            sys.exit(1)
     
-    setRights(device)
-    serverStart()
+    if os.path.isfile("/var/log/ovpn.log") and os.path.isfile("/var/log/ovpn-status.log")
+        setRights(device)
+    else:
+        pritn("Logs file were not created!")
+    
+    if varsDone and confDone:
+        serverStart()
+    else:
+        print("Something went wrong. Start from the beginning")
 
     """
     if os.path.isfile('/etc/openvpn/easy-rsa/vars'):
@@ -754,7 +787,7 @@ if os.geteuid() == 0:
     #Easy installation or advanced
     if os.path.isfile("/etc/openvpn/server/server.conf") or os.path.isfile("/etc/openvpn/client.ovpn"):
         print("Server configuration or client configuration already exist!")
-        sys.exit(1)
+        sys.sys.
     else:
         while run == True:
             if serverName is None:
@@ -832,4 +865,4 @@ if os.geteuid() == 0:
 """
 else:
     print("ERROR: You need sudo rights!")
-    sys.exit(1)
+    sys.sys.
