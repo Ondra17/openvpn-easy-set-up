@@ -169,10 +169,10 @@ def createStruc(username):
             if result.returncode != 0:
                 print(f"Error: {result.stderr}")
 
-         with open("/etc/openvpn/client.ovpn", "a") as file:
-            file.write("ca ca.crt")
-            file.write(f"cert {username}.crt")
-            file.write(f"key {username}.key")
+        with open("/etc/openvpn/client.ovpn", "a") as file:
+            file.write("ca ca.crt\n")
+            file.write(f"cert {username}.crt\n")
+            file.write(f"key {username}.key\n")
     else:
         print("User certificates were not copied!")    
 
