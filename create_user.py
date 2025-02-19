@@ -135,11 +135,13 @@ def csvAdd():
                             except subprocess.CalledProcessError as e:
                                 print(f"Certificate creation error: {e}")
                         createStruc(username)
+
+                        """
                         if os.path.isfile(f"/etc/openvpn/users/{username}/{username}.crt"):
                             addCert(username)
                         else:
                             print("ERROR! Certificate and key did not copied.")
-
+                        """
                     else:
                         print("Skipping empty username")
                     path = False
@@ -167,6 +169,10 @@ def createStruc(username):
             if result.returncode != 0:
                 print(f"Error: {result.stderr}")
 
+         with open("/etc/openvpn/client.ovpn", "a") as file:
+            file.write("ca ca.crt")
+            file.write(f"cert {username}.crt")
+            file.write(f"key {username}.key")
     else:
         print("User certificates were not copied!")    
 
