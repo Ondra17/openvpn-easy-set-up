@@ -605,6 +605,7 @@ def usrConfAdv(port, protocol, device, cipher, gatewayUse):
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def server_name_input():
+    print("---------- Enter Server Name ----------")
         Name = None
         run = True
         while run == True:
@@ -640,8 +641,8 @@ def setRights( device):
     #rights for log files
     os.system(f"chown openvpn:openvpn /var/log/ovpn-status.log")
     os.system(f"chown openvpn:openvpn /var/log/ovpn.log")
-    os.system(f"chmod 644 /var/log/ovpn-status.log")
-    os.system(f"chmod 644 /var/log/ovpn.log")
+    os.system(f"chmod 664 /var/log/ovpn-status.log")
+    os.system(f"chmod 664 /var/log/ovpn.log")
     #rights for device
     os.system(f"chown openvpn:openvpn /dev/net/{device}")
     os.system(f"chmod 0666 /dev/net/{device}")
@@ -705,7 +706,7 @@ if os.geteuid() == 0:
                 run = False
             elif confQues == "2":
                 port, protocol, device, cipherUse, gatewayUse, tlsServer, redirectGateway = advancedConf(serverName)
-                usrConfAdv(port, protocol, device, cipher, gatewayUse)
+                usrConfAdv(port, protocol, device, cipherUse, gatewayUse)
                 ipForwardinf(redirectGateway)
                 run = False
     
