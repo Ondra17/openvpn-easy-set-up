@@ -351,7 +351,7 @@ def advancedConf(serverName):
     mask = None
     network = None
     networkCheck = False
-    dnsCheck = False
+    dnsCheck = True
     dns = None
     dnsCheckAdd = False
 
@@ -448,7 +448,7 @@ def advancedConf(serverName):
                 dns = input("DNS server address (format: 'address'): ")
                 ipaddress.IPv4Network(f"{dns}", strict=False)
                 dnsCheck = False
-                dnsCheckAdd = True
+                dnsCheckAdd = False
             except ValueError:
                 print("Wrong Format! Please enter in 'address' format.")
     else:
