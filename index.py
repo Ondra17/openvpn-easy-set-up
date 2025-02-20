@@ -56,10 +56,17 @@ def dir_struc():
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def vars_rewrite():
-
+    countryLetters = True
     print("------------ Modify vars file ------------")
+    rsa_country=input(str("Country [XX]:"))
+    while countryLetters:
+        char_count_country=len(rsa_country)
+        if char_count_country == 2:
+            countryLetters = False
+        else:
+            print("Country must consist of two letters!")
+            rsa_country=input(str("Country [XX]:"))
 
-    rsa_country=input(str("Country:"))
     rsa_province=input(str("Province:"))
     rsa_city=input(str("City:"))
     rsa_organization=input(str("Organization:"))
@@ -68,36 +75,33 @@ def vars_rewrite():
 
     up_country=rsa_country.upper()
 
-    char_count_country=len(rsa_country)
-    if char_count_country == 2:
-        rsaVarsFile = "/etc/openvpn/easy-rsa/vars"
 
-        # Text to append
-        varsTextCounrty = f'set_var EASYRSA_REQ_COUNTRY	"{up_country}"\n'
-        varsTextProvince = f'set_var EASYRSA_REQ_PROVINCE	"{rsa_province}"\n'
-        varsTextCity = f'set_var EASYRSA_REQ_CITY	"{rsa_city}"\n'
-        varsTextOrg = f'set_var EASYRSA_REQ_ORG	  "{rsa_organization}"\n'
-        varsTextEmail = f'set_var EASYRSA_REQ_EMAIL	"{rsa_email}"\n'
-        varsTextOU = f'set_var EASYRSA_REQ_OU		"f{rsa_ou}"\n'
+    rsaVarsFile = "/etc/openvpn/easy-rsa/vars"
+
+    varsTextCounrty = f'set_var EASYRSA_REQ_COUNTRY	"{up_country}"\n'
+    varsTextProvince = f'set_var EASYRSA_REQ_PROVINCE	"{rsa_province}"\n'
+    varsTextCity = f'set_var EASYRSA_REQ_CITY	"{rsa_city}"\n'
+    varsTextOrg = f'set_var EASYRSA_REQ_ORG	  "{rsa_organization}"\n'
+    varsTextEmail = f'set_var EASYRSA_REQ_EMAIL	"{rsa_email}"\n'
+    varsTextOU = f'set_var EASYRSA_REQ_OU		"f{rsa_ou}"\n'
 
 
-        try:
-            # Open the file in append mode
-            with open(rsaVarsFile, "a") as file:
-                file.write(varsTextCounrty)
-                file.write(varsTextProvince)
-                file.write(varsTextCity)
-                file.write(varsTextOrg)
-                file.write(varsTextEmail)
-                file.write(varsTextOU)
-                file.write("#done")
-            print(f"Text added to {rsaVarsFile}")
-        except FileNotFoundError:
-            print(f"Error: File '{rsaVarsFile}' does not exist.")
-        except PermissionError:
-            print(f"Error: Permission denied to write to '{rsaVarsFile}'.")
-        except Exception as e:
-            print(f"An error occurred: {e}")
+    try:
+        with open(rsaVarsFile, "a") as file:
+            file.write(varsTextCounrty)
+            file.write(varsTextProvince)
+            file.write(varsTextCity)
+            file.write(varsTextOrg)
+            file.write(varsTextEmail)
+            file.write(varsTextOU)
+            file.write("#done")
+        print(f"Text added to {rsaVarsFile}")
+    except FileNotFoundError:
+        print(f"Error: File '{rsaVarsFile}' does not exist.")
+    except PermissionError:
+        print(f"Error: Permission denied to write to '{rsaVarsFile}'.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -386,7 +390,7 @@ def advancedConf(serverName):
         if device.strip() == "":
             device = "tun0"
             deviceCheck = False
-        elif device.lower() not in ("tun", "tap"):
+        elif device.lower() not in ("tun", "tap", "tap0"):
             device = "tun0"
             deviceCheck = False
         else:
@@ -471,7 +475,7 @@ def advancedConf(serverName):
             print("Do you want ADD DNS address?")
             dnsQst = inputQuestion()
             if dnsQst == "y":
-                dnsCheck = False
+                dnsCheck = True
             elif dnsQst == "No" or dnsQst == "n":
                 dnsCheck = False
 
@@ -582,7 +586,7 @@ def usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer):
         file.write("#Advanced configuration\n")
         if tlsServer == "y":
             file.write("tls-client\n")
-            file.write("pull")
+            file.write("pull\n")
         else:
             file.write("client\n")
         file.write(f"remote {addrHost} {port}\n")
@@ -621,26 +625,6 @@ def server_name_input():
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
-def ipForwardinf(redirectGateway):
-    os.system('echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf')
-    """
-    while True:
-        if redirectGateway == "n":
-            forw = str(input("Do you want to enable IP forwarding? [yes/no]:"))
-            if forw == "yes" or forw == "y":
-                os.system('echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf')
-                return True
-            elif forw == "no" or forw == "n":
-                return True
-            else:
-                print("Invalid input. Please enter 'y' or 'n'.")
-        else:
-            os.system('echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf')
-            os.system("iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE")
-            return True
-    """
-#-------------------------------------------------------------------------------------------------------------------------------------------------
-
 def setRights(device):
     #rights for log files
     os.system(f"chown openvpn:openvpn /var/log/ovpn-status.log")
@@ -653,7 +637,8 @@ def setRights(device):
     os.system(f"chmod 0666 /dev/net/{device}")
 
 def firewallRules():
-    os.system("firewall-cmd --permanent --add-service=openvpn")
+    os.system('echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf')
+    #os.system("firewall-cmd --permanent --add-service=openvpn")
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -740,7 +725,7 @@ if os.geteuid() == 0:
                 elif confQues == "2":
                     port, protocol, device, cipherUse, gatewayUse, tlsServer, redirectGateway = advancedConf(serverName)
                     usrConfAdv(port, protocol, device, cipherUse, gatewayUse, tlsServer)
-                    ipForwardinf(redirectGateway)
+                    firewallRules()
                     run = False
                     confDone = True
     else:
