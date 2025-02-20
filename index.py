@@ -360,7 +360,7 @@ def advancedConf(serverName):
     dnsCheckAdd = False
 
     portCheck = True
-    while portCheck == True:
+    while portCheck:
         port = input("Port number?(default openvpn 1194)")
         if port.strip() == "":
             port = "1194"
@@ -373,24 +373,25 @@ def advancedConf(serverName):
                 print("Invalid input! Please enter a valid port number.")
 
     protocolCheck = True
-    while protocolCheck == True:
-        protocol = input("protocol? (UDP or TCP)")
-        if protocol.strip() == "":
+    while protocolCheck:
+        protocol = input("protocol? (UDP or TCP): ").strip().lower()
+        if protocol == "":
             protocol = "udp"
             protocolCheck = False
-        elif protocol.lower() not in ("udp", "tcp"):
-            protocol = "udp"
+        elif protocol in ("udp", "tcp"):
             protocolCheck = False
         else:
-            pass
+            protocol = "udp"
+            print("Invalid protocol, default UDP is set.")
+            protocolCheck = False
     
     deviceCheck = True
     while deviceCheck:
-        device = input("device? (tun or tap)")
-        if device.strip() == "":
+        device = input("device? (tun or tap)").stript().lower()
+        if device == "":
             device = "tun0"
             deviceCheck = False
-        elif device.lower() not in ("tun", "tap", "tap0"):
+        elif device in ("tun", "tap", "tap0"):
             device = "tun0"
             deviceCheck = False
         else:
