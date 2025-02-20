@@ -136,12 +136,16 @@ def csvAdd():
                                 print(f"Certificate creation error: {e}")
                         createStruc(username)
 
-                        """
+                        
                         if os.path.isfile(f"/etc/openvpn/users/{username}/{username}.crt"):
                             addCert(username)
                         else:
                             print("ERROR! Certificate and key did not copied.")
-                        """
+                        
+                        #zip of clients files
+                        os.chdir(f"/etc/openvpn/users/{username}")
+                        os.system(f"zip -r ovpn_{username} *")
+                        
                     else:
                         print("Skipping empty username")
                     path = False
@@ -168,11 +172,12 @@ def createStruc(username):
             result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
             if result.returncode != 0:
                 print(f"Error: {result.stderr}")
-
+        """
         with open("/etc/openvpn/client.ovpn", "a") as file:
             file.write("ca ca.crt\n")
             file.write(f"cert {username}.crt\n")
             file.write(f"key {username}.key\n")
+        """
     else:
         print("User certificates were not copied!")    
 
@@ -180,21 +185,14 @@ def addCert(username):
     with open(f"/etc/openvpn/users/{username}/ca.crt", "r") as sourceCA, open(f"/etc/openvpn/users/{username}/{username}.crt", "r") as sourceCrt, open(f"/etc/openvpn/users/{username}/{username}.key", "r") as sourceKey, open(f"/etc/openvpn/users/{username}/client.ovpn", "a") as usrConf:
         content = sourceCrt.read()
         userCRT = re.search(r"(-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----)", content, re.DOTALL)
-        
-        #usrConf.write("<ca>")
-        #usrConf.write(sourceCA.read())
-        #usrConf.write("</ca>")
 
         usrConf.write("<ca>\n" + sourceCA.read() + "\n</ca>\n")
         usrConf.write("<cert>\n" + userCRT.group(1) + "\n</cert>\n")
         usrConf.write("<key>\n" + sourceKey.read() + "\n</key>\n")
 
-    
-        #usrConf.write("<key>")
-        #usrConf.write(sourceKey.read())
-        #usrConf.write("</key>")
-
-
+#---------------------------------------------------------------------------------
+#--------------------------------- Main Code -------------------------------------
+#---------------------------------------------------------------------------------
 
 if os.geteuid() == 0:
     #if os.path.isfile('/etc/openvpn/users') and os.path.isfile('/etc/openvpn/easy-rsa/pki'):
