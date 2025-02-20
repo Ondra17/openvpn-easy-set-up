@@ -59,6 +59,9 @@ def oneClient():
 
     createStruc(username)
     addCert(username)
+    #zip of clients files
+    os.chdir(f"/etc/openvpn/users/{username}")
+    os.system(f"zip -r ovpn_{username} *")
 
     """
     os.system(f"sudo ./easyrsa sign-req client {username}")
