@@ -528,7 +528,7 @@ def advancedConf(serverName):
         else:
             pass
         if cipherUse == "y":
-            file.write("cipher AES-256-CBC\n")
+            file.write("data-ciphers AES-256-GCM\n")
             file.write("auth SHA512\n")
             file.write("tls-cipher TLS-DHE-RSA-WITH-AES-256-GCM-SHA384:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256:TLS-DHE-RSA-WITH-AES-128-GCM-SHA256:TLS-DHE-RSA-WITH-AES-128-CBC-SHA256\n")
         else:
@@ -557,7 +557,7 @@ def advancedConf(serverName):
     return port, protocol, device, cipherUse, gatewayUse, tlsServer, redirectGateway
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
-def usrConfAdv(port, protocol, device, cipher, gatewayUse):
+def usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer):
     print("\n---------- Creating users configuration ----------\n")
     servRoute = False
     addrHost = input("Enter server URL or IP address: ")
@@ -573,14 +573,18 @@ def usrConfAdv(port, protocol, device, cipher, gatewayUse):
                 print("Wrong format! Please enter in 'address mask' format.") 
     else:
         pass
-    
+
     protocol = re.sub(r'\d', '', protocol)
 
 
     os.system("touch /etc/openvpn/client.ovpn")
     with open("/etc/openvpn/client.ovpn", "a") as file:
         file.write("#Advanced configuration\n")
-        file.write("client\n")
+        if tlsServer == "y":
+            file.write("tls-client\n")
+            file.write("pull")
+        else:
+            file.write("client\n")
         file.write(f"remote {addrHost} {port}\n")
         file.write(f"dev {device}\n")
         file.write(f"proto {protocol}\n")
@@ -588,7 +592,7 @@ def usrConfAdv(port, protocol, device, cipher, gatewayUse):
         file.write("resolv-retry infinite\n")
         file.write("remote-cert-tls server\n")
         if cipher == "y":
-            file.write("cipher AES-256-CBC\n")
+            file.write("data-ciphers AES-256-GCM\n")
             file.write("auth SHA512\n")
             file.write("tls-cipher TLS-DHE-RSA-WITH-AES-256-GCM-SHA384:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256:TLS-DHE-RSA-WITH-AES-128-GCM-SHA256:TLS-DHE-RSA-WITH-AES-128-CBC-SHA256\n")
         else:
@@ -735,7 +739,7 @@ if os.geteuid() == 0:
                     confDone = True
                 elif confQues == "2":
                     port, protocol, device, cipherUse, gatewayUse, tlsServer, redirectGateway = advancedConf(serverName)
-                    usrConfAdv(port, protocol, device, cipherUse, gatewayUse)
+                    usrConfAdv(port, protocol, device, cipherUse, gatewayUse, tlsServer)
                     ipForwardinf(redirectGateway)
                     run = False
                     confDone = True
