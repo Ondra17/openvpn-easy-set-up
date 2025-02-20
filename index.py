@@ -172,6 +172,8 @@ def server_cert_gen(CA_dir, serverName):
             os.system(f"cp /etc/openvpn/easy-rsa/pki/private/{serverName}.key /etc/openvpn/server/")
             os.system(f"cp /etc/openvpn/easy-rsa/pki/issued/{serverName}.crt /etc/openvpn/server/")
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------
+
 def server_dh_gen(CA_dir):
     print("\n---------- generating Diffie-Hellman parameter ----------\n")
     os.chdir(CA_dir)
