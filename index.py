@@ -605,15 +605,15 @@ def usrConfAdv(port, protocol, device, cipher, gatewayUse):
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def server_name_input():
-    print("---------- Enter Server Name ----------")
-        Name = None
-        run = True
-        while run == True:
-            if Name == None:
-                Name=input("Server Name:")
-            else:
-                run = False
-        return Name
+    print("---------- Enter Server Name for server certificate ----------")
+    Name = None
+    run = True
+    while run == True:
+        if Name == None:
+            Name=input("Server Name:")
+        else:
+            run = False
+    return Name
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -637,13 +637,14 @@ def ipForwardinf(redirectGateway):
     """
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
-def setRights( device):
+def setRights(device):
     #rights for log files
     os.system(f"chown openvpn:openvpn /var/log/ovpn-status.log")
     os.system(f"chown openvpn:openvpn /var/log/ovpn.log")
     os.system(f"chmod 664 /var/log/ovpn-status.log")
     os.system(f"chmod 664 /var/log/ovpn.log")
     #rights for device
+    device = re.sub(r'\d+', '', device)
     os.system(f"chown openvpn:openvpn /dev/net/{device}")
     os.system(f"chmod 0666 /dev/net/{device}")
 
@@ -666,6 +667,7 @@ if os.geteuid() == 0:
     varsDone = False
     run = True
     serverName = None
+    rewrite = True
     CA_dir = '/etc/openvpn/easy-rsa'
     easyrsa_path = "/usr/share/easy-rsa/3/easyrsa"
 
@@ -675,33 +677,38 @@ if os.geteuid() == 0:
     print("Both Easy-RSA and OpenVPN are installed and functioning correctly.")
     dir_struc()
 
-    if os.path.isfile("/etc/openvpn/server") and os.path.isfile("/etc/openvpn/users")
+    if os.path.isdir("/etc/openvpn/server") and os.path.isdir("/etc/openvpn/users"):
         rsa_set_up()
     else:
-        pass
+        print("/etc/openvpn/server and /etc/openvpn/users do not exist!")
+        sys.exit(1)
     
     if os.path.isfile('/etc/openvpn/easy-rsa/vars'):
-        with open('/etc/openvpn/easy-rsa/vars', 'r') as varsFile:
-            content = varsFile.read()
-            if 'done' in content:
-                print("Vars file already modified")
-                varsDone = True
-            else:
-                vars_rewrite()
-                varsDone = True
-    #tady by sel udela while mozna
-    CA_build(CA_dir)
-    CA_check()
+        while rewrite:
+            with open('/etc/openvpn/easy-rsa/vars', 'r') as varsFile:
+                content = varsFile.read()
+                if 'done' in content:
+                    CA_build(CA_dir)
+                    CA_check()
+                    varsDone = True
+                    rewrite = False
+                else:
+                    vars_rewrite()
+                    rewrite = True
+
+    #CA_build(CA_dir)
+    #CA_check()
     
     server_dh_gen(CA_dir)
     log_create()
-    if os.path.isfile("/etc/openvpn/easy-rsa/pki/vars")
+    if os.path.isfile("/etc/openvpn/easy-rsa/pki/vars"):
         serverName = server_name_input()
         server_cert_gen(CA_dir, serverName)
     else:
         print("Vars file were not moved into /etc/openvpn/easy-rsa/pki/vars")
         sys.exit(1)
 
+    print(f"this is server name: {serverName}")
     if serverName is not None:
         while run:
             print("---------- Creating configuration for server ----------")
@@ -732,11 +739,11 @@ if os.geteuid() == 0:
                     ipForwardinf(redirectGateway)
                     run = False
                     confDone = True
-        else:
-            print("You must enter Server Name!")
-            sys.exit(1)
+    else:
+        print("You must enter Server Name!")
+        sys.exit(1)
     
-    if os.path.isfile("/var/log/ovpn.log") and os.path.isfile("/var/log/ovpn-status.log")
+    if os.path.isfile("/var/log/ovpn.log") and os.path.isfile("/var/log/ovpn-status.log"):
         setRights(device)
     else:
         pritn("Logs file were not created!")
@@ -865,4 +872,4 @@ if os.geteuid() == 0:
 """
 else:
     print("ERROR: You need sudo rights!")
-    sys.sys.
+    sys.exit(1)
