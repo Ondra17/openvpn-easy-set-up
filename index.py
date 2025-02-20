@@ -267,7 +267,7 @@ def easyConf(serverName):
 
     os.system("touch /etc/openvpn/server/server.conf")
     with open("/etc/openvpn/server/server.conf", "a") as file:
-        file.write("#Easy configuration")
+        file.write("#Easy configuration\n")
         file.write("mode server \n")
         file.write(f"port {port} \n")
         file.write(f"proto {protocol}\n")
@@ -515,11 +515,11 @@ def advancedConf(serverName):
         else:
             pass
         if lanPushUse == "y":
-            file.write(f"push {lanAddress}")
+            file.write(f'push "route {lanPush}"\n')
         else:
             pass
         if gatewayUse == "y":
-            file.write(f"push route-gateway {gateway}")
+            file.write(f"push route-gateway {gateway}\n")
         else:
             pass
         if redirectGateway == "y" and dnsCheckAdd == False:
