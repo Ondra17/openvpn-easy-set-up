@@ -237,28 +237,31 @@ def easyConf(serverName):
                 print("Invalid input! Please enter a valid port number.")
 
     protocolCheck = True
-    while protocolCheck == True:
-        protocol = input("protocol? (UDP or TCP)")
-        if protocol.strip() == "":
+    while protocolCheck:
+        protocol = input("protocol? (UDP or TCP): ").strip().lower()
+        if protocol == "":
             protocol = "udp"
+            print("Default UDP is set.")
             protocolCheck = False
-        elif protocol.lower() not in ("udp", "tcp"):
-            protocol = "udp"
+        elif protocol in ("udp", "tcp"):
             protocolCheck = False
         else:
-            pass
+            protocol = "udp"
+            print("Invalid protocol, default UDP is set.")
+            protocolCheck = False
     
     deviceCheck = True
-    while deviceCheck == True:
-        device = input("device? (tun or tap)")
-        if device.strip() == "":
+    while deviceCheck:
+        device = input("device? (tun or tap)").strip().lower()
+        if device == "":
             device = "tun0"
+            print("Default tun0 is set.")
             deviceCheck = False
-        elif device.lower() not in ("tun", "tap"):
-            device = "tun0"
+        elif device in ("tun", "tap", "tun0", "tap0"):
             deviceCheck = False
         else:
-            pass
+            device = "tun0"
+            print("Invalid device, default tun0 is set.")
 
     while networkCheck == False:
         try:
@@ -275,7 +278,10 @@ def easyConf(serverName):
         file.write("mode server \n")
         file.write(f"port {port} \n")
         file.write(f"proto {protocol}\n")
-        file.write(f"dev {device}\n")
+        if device in ("tap", "tap0"):
+            file.write(f"dev {device}-server\n")
+        else:
+            file.write(f"dev {device}\n")
         file.write("ca /etc/openvpn/server/ca.crt\n")
         file.write(f"cert /etc/openvpn/server/{serverName}.crt\n")
         file.write(f"key /etc/openvpn/server/{serverName}.key\n")
@@ -306,7 +312,10 @@ def usrConfEasy(port, protocol, device):
         file.write("#Easy configuration\n")
         file.write("client\n")
         file.write(f"remote {addrHost} {port}\n")
-        file.write(f"dev {device}\n")
+        if device in ("tap", "tap0"):
+            file.write(f"dev {device}-client\n")
+        else:
+            file.write(f"dev {device}\n")
         file.write(f"proto {protocol}\n")
         file.write("remote-cert-tls server\n")
         file.write("persist-tun\n")
@@ -377,6 +386,7 @@ def advancedConf(serverName):
         protocol = input("protocol? (UDP or TCP): ").strip().lower()
         if protocol == "":
             protocol = "udp"
+            print("Default UDP is set.")
             protocolCheck = False
         elif protocol in ("udp", "tcp"):
             protocolCheck = False
@@ -387,15 +397,16 @@ def advancedConf(serverName):
     
     deviceCheck = True
     while deviceCheck:
-        device = input("device? (tun or tap)").stript().lower()
+        device = input("device? (tun or tap)").strip().lower()
         if device == "":
             device = "tun0"
+            print("Default tun0 is set.")
             deviceCheck = False
-        elif device in ("tun", "tap", "tap0"):
-            device = "tun0"
+        elif device in ("tun", "tap", "tun0", "tap0"):
             deviceCheck = False
         else:
-            pass
+            device = "tun0"
+            print("Invalid device, default tun0 is set.")
 
     while networkCheck == False:
         try:
@@ -410,16 +421,18 @@ def advancedConf(serverName):
     print("Do you want TLS-SERVER? [yes/no]")
     tlsServer = inputQuestion()
 
-
-    topoCheck = False
-    while topoCheck == False:
-        try:
-            topology = int(input("Do you want add type of topology? (subnet[1] / p2p[2] / net30[3] / skip[4]):"))
-            if topology not in [1, 2, 3, 4]:
-                raise ValueError("Invalid input. Please type 1 / 2 / 3 / 4.")
-            topoCheck = True
-        except ValueError as errorTopo:
-            print(errorTopo)
+    if device in ("tap", "tap0"):
+        pass
+    else:
+        topoCheck = False
+        while topoCheck == False:
+            try:
+                topology = int(input("Do you want add type of topology? (subnet[1] / p2p[2] / net30[3] / skip[4]):"))
+                if topology not in [1, 2, 3, 4]:
+                    raise ValueError("Invalid input. Please type 1 / 2 / 3 / 4.")
+                topoCheck = True
+            except ValueError as errorTopo:
+                print(errorTopo)
 
     print("Do you want allow CLIENT-TO-CLIENT communication? [yes/no]")
     ctoc = inputQuestion()
@@ -458,19 +471,23 @@ def advancedConf(serverName):
                 print("Wrong Format! Please enter in 'address' format.")
     else:
         pass
-    print("Do you want redirect olny a specific networks? (Split Tunnel) [yes/no]")
-    lanPushUse = inputQuestion()
 
-    if lanPushUse == "y":
-        pushCheck = False
-        while pushCheck == False:
-            try:
-                lanPush = input("Push (format: 'address mask'): ")
-                lanAddress, lanMask = lanPush.split()
-                ipaddress.IPv4Network(f"{lanAddress}/{lanMask}", strict=False)
-                pushCheck = True
-            except ValueError:
-                print("Wrong format! Please enter in 'address mask' format.")
+    if device in ("tap", "tap0"):
+        pass
+    else:
+        print("Do you want redirect olny a specific networks? (Split Tunnel) [yes/no]")
+        lanPushUse = inputQuestion()
+
+        if lanPushUse == "y":
+            pushCheck = False
+            while pushCheck == False:
+                try:
+                    lanPush = input("Push (format: 'address mask'): ")
+                    lanAddress, lanMask = lanPush.split()
+                    ipaddress.IPv4Network(f"{lanAddress}/{lanMask}", strict=False)
+                    pushCheck = True
+                except ValueError:
+                    print("Wrong format! Please enter in 'address mask' format.")
 
     if redirectGateway == "n":
             print("Do you want ADD DNS address?")
@@ -501,28 +518,41 @@ def advancedConf(serverName):
             pass
         file.write(f"port {port} \n")
         file.write(f"proto {protocol}\n")
-        file.write(f"dev {device}\n")
+        if device in ("tap", "tap0"):
+            file.write(f"dev {device}-server\n")
+        else:
+            file.write(f"dev {device}\n")
         file.write("ca /etc/openvpn/server/ca.crt\n")
         file.write(f"cert /etc/openvpn/server/{serverName}.crt\n")
         file.write(f"key /etc/openvpn/server/{serverName}.key\n")
         file.write("dh /etc/openvpn/server/dh.pem\n")
-        if topology == 1:
-            file.write(f"topology subnet\n")
-        elif topology == 2:
-            file.write(f"topology p2p\n")
-        elif topology == 3:
-            file.write(f"topology net30\n")
-        elif topology == 4:
+
+        if device in ("tap", "tap0"):
             pass
+        else:
+            if topology == 1:
+                file.write(f"topology subnet\n")
+            elif topology == 2:
+                file.write(f"topology p2p\n")
+            elif topology == 3:
+                file.write(f"topology net30\n")
+            elif topology == 4:
+                pass
+            
         file.write(f"server {network}\n")
         if dnsCheckAdd == True and redirectGateway == "n":
             file.write(f'push "dhcp-option DNS {dns}"\n')
         else:
             pass
-        if lanPushUse == "y":
-            file.write(f'push "route {lanPush}"\n')
-        else:
+
+        if device in ("tap", "tap0"):
             pass
+        else:
+            if lanPushUse == "y":
+                file.write(f'push "route {lanPush}"\n')
+            else:
+                pass
+            
         if gatewayUse == "y":
             file.write(f"push route-gateway {gateway}\n")
         else:
@@ -592,7 +622,10 @@ def usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer):
             file.write("client\n")
         file.write(f"remote {addrHost} {port}\n")
         file.write(f"dev {device}\n")
-        file.write(f"proto {protocol}\n")
+        if device in ("tap", "tap0"):
+            file.write(f"dev {device}-server\n")
+        else:
+            file.write(f"dev {device}\n")
         file.write("redirect-gateway\n")
         file.write("resolv-retry infinite\n")
         file.write("remote-cert-tls server\n")
