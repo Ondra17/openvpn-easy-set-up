@@ -734,7 +734,7 @@ if os.geteuid() == 0:
         sys.exit(1)
 
     print(f"this is server name: {serverName}")
-    if serverName is not None OR os.path.isfile(f"/etc/openvpn/easy-rsa/pki/issued/{serverName}.crt"):
+    if serverName is not None and os.path.isfile(f"/etc/openvpn/easy-rsa/pki/issued/{serverName}.crt"):
         while run:
             print("---------- Creating configuration for server ----------")
             print("Choose between easy [1] or advanced [2] configuration")
@@ -764,7 +764,7 @@ if os.geteuid() == 0:
                     firewallRules()
                     run = False
                     confDone = True
-    elif serverName is not None:
+    elif serverName is None:
         print("You must enter Server Name!")
         sys.exit(1)
     elif os.path.isfile(f"/etc/openvpn/easy-rsa/pki/issued/{serverName}.crt"):
@@ -785,7 +785,8 @@ if os.geteuid() == 0:
     print("Do you want add users certificates?")
     usrCert = inputQuestion()
     if usrCert == "y":
-        os.system("python3 create_users.py")
+        script_path = os.path.dirname(os.path.abspath(__file__))
+        os.system(f"python3 {scriptPath}/reate_users.py")
     else:
         print("You can add user certs via create_users.py script.")
 
