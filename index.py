@@ -57,15 +57,15 @@ def dir_struc():
 
 def vars_rewrite():
     countryLetters = True
-    print("------------ Modify vars file ------------")
-    rsa_country=input(str("Country [XX]:"))
+    print("\n------------ Modify vars file ------------")
+    rsaCountry=input(str("Country [XX]:"))
     while countryLetters:
-        char_count_country=len(rsa_country)
-        if char_count_country == 2:
+        charCountCountry=len(rsaCountry)
+        if charCountCountry == 2 :
             countryLetters = False
         else:
             print("Country must consist of two letters!")
-            rsa_country=input(str("Country [XX]:"))
+            rsaCountry=input(str("Country [XX]:"))
 
     rsa_province=input(str("Province:"))
     rsa_city=input(str("City:"))
@@ -73,7 +73,7 @@ def vars_rewrite():
     rsa_email=input(str("email:"))
     rsa_ou=input(str("Organization Unit:"))
 
-    up_country=rsa_country.upper()
+    up_country=rsaCountry.upper()
 
 
     rsaVarsFile = "/etc/openvpn/easy-rsa/vars"
@@ -649,7 +649,7 @@ def usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer):
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def server_name_input():
-    print("---------- Enter Server Name for server certificate ----------")
+    print("\n---------- Enter Server Name for server certificate ----------")
     Name = None
     run = True
     while run == True:
@@ -674,17 +674,25 @@ def setRights(device):
 
 def firewallRules():
     os.system('echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf')
+    os.system("semanage permissive -a openvpn_t")
+    print("Setting SELinux permissive mode for OpenVPN.")
     #os.system("firewall-cmd --permanent --add-service=openvpn")
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def serverStart():
     print("\n---------- Starting OpenVPN ----------\n")
-    os.system("systemctl start openvpn-server@server")
-    os.system("systemctl enable openvpn-server@server")
-    os.system("systemctl status openvpn-server@server")
+    os.system("systemctl restart openvpn-server@server")
+    isActive = subprocess.run(["systemctl", "is-active", "openvpn-server@server"], capture_output=True, text=True)
+    if isActive.stdout.strip() == "active":
+        os.system("systemctl enable openvpn-server@server")
+        print("OpenVPN is acive!")
+        #os.system("systemctl status openvpn-server@server")
+    else:
+        print("OpenVPN could not be started. Try journalctl -xeu openvpn-server@server or start again.")
+        sys.exit(1)
 #-------------------------------------------------------------------------------------------------------------------------------------------------
-#------------------------------------------     Vecicky        -----------------------------------------------------------------------------------
+#------------------------------------------    Main code    --------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 if os.geteuid() == 0:
@@ -736,7 +744,7 @@ if os.geteuid() == 0:
     print(f"this is server name: {serverName}")
     if serverName is not None and os.path.isfile(f"/etc/openvpn/easy-rsa/pki/issued/{serverName}.crt"):
         while run:
-            print("---------- Creating configuration for server ----------")
+            print("\n---------- Creating configuration for server ----------")
             print("Choose between easy [1] or advanced [2] configuration")
             print("Easy -> port, protocol, device, server (ip address), log")
             print("Advanced -> Extended configuration")
@@ -782,131 +790,15 @@ if os.geteuid() == 0:
     else:
         print("Something went wrong. Start from the beginning")
 
+    print("\n---------- Certificate generation ----------")
     print("Do you want add users certificates?")
     usrCert = inputQuestion()
     if usrCert == "y":
-        script_path = os.path.dirname(os.path.abspath(__file__))
-        os.system(f"python3 {scriptPath}/reate_users.py")
+        scriptPath = os.path.dirname(os.path.abspath(__file__))
+        os.system(f"python3 {scriptPath}/create_users.py")
     else:
         print("You can add user certs via create_users.py script.")
 
-    """
-    if os.path.isfile('/etc/openvpn/easy-rsa/vars'):
-        with open('/etc/openvpn/easy-rsa/vars', 'r') as varsFile:
-            content = varsFile.read()
-            if 'done' in content:
-                pass
-            else:
-                rsa_set_up()
-                vars_rewrite()
-              
-    else:
-        rsa_set_up()
-        vars_rewrite()
-    
-
-    if os.path.exists("/etc/openvpn/easy-rsa/pki/ca.crt"): 
-        pass
-    else:   
-
-        CA_build(CA_dir)
-    
-
-    if serverName is None:
-        if  os.path.exists(f"/etc/openvpn/easy-rsa/pki/private/{serverName}.key") and os.path.exists(f"/etc/openvpn/easy-rsa/pki/issued/{serverName}.crt"):
-            pass
-        else:
-            serverName = server_name_input()
-            server_cert_gen(CA_dir, serverName)
-    else:
-        pass
-
-    if  os.path.exists("/etc/openvpn/easy-rsa/pki/dh.pem"):
-        pass
-    else:
-        server_dh_gen(CA_dir)
-
-    log_create()
-
-    #Easy installation or advanced
-    if os.path.isfile("/etc/openvpn/server/server.conf") or os.path.isfile("/etc/openvpn/client.ovpn"):
-        print("Server configuration or client configuration already exist!")
-        sys.sys.
-    else:
-        while run == True:
-            if serverName is None:
-                print("---------- Creating configuration for server ----------")
-                serverName = server_name_input()
-                print("Choose between easy [1] or advanced [2] configuration")
-                print("Easy -> port, protocol, device, server (ip address), log")
-                print("Advanced -> Extended configuration")
-                print("If you want to change them manually, after script ends go to /etc/openvpn/server.conf")
-
-                confCheck = True
-                while confCheck:
-                    confQues = input("Write 1 or 2:")
-                    if confQues.strip() == "":
-                        print("Invalid input! Please enter 1 or 2.")
-                    elif confQues == "1" or confQues == "2":
-                        confCheck = False
-                    else:
-                        print("Invalid input! Please enter 1 or 2.")
-
-                    
-
-                if confQues == "1":
-                    #easyConf(serverName)
-                    port, protocol, device = easyConf(serverName)
-                    print(f"Calling usrConfEasy with: {port}, {protocol}, {device}")
-                    print("podminka 1")
-                    usrConfEasy(port, protocol, device)
-                    run = False
-                elif confQues == "2":
-                    port, protocol, device, cipher, gatewayUse, tlsServer,  redirectGateway= advancedConf(serverName)
-                    usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer)
-                    ipForwardinf(redirectGateway)
-                    run = False
-                else:
-                    pass
-            else:
-                print("---------- Creating configuration for server ----------")
-                print("Choose between easy [1] or advanced [2] configuration")
-                print("Easy -> port, protocol, device, server (ip address), log")
-                print("Advanced -> Extended configuration")
-                print("If you want to change them manually, after script ends go to /etc/openvpn/server.conf")
-                
-                confCheck = True
-                while confCheck:
-                    confQues = input("Write 1 or 2:")
-                    if confQues.strip() == "":
-                        print("Invalid input! Please enter 1 or 2.")
-                    elif confQues == "1" or confQues == "2":
-                        confCheck = False
-                    else:
-                        print("Invalid input! Please enter 1 or 2.")
-
-                    
-                if confQues == "1":
-                    #easyConf(serverName)
-                    port, protocol, device, name, group = easyConf(serverName)
-                    print(f"Calling usrConfEasy with: {port}, {protocol}, {device}")
-                    #usrConfEasy(port, protocol, device)
-                    usrConfEasy(1194, "udp", "tun0")
-
-                    run = False
-                elif confQues == "2":
-                    port, protocol, device, cipher, gatewayUse, tlsServer,  redirectGateway = advancedConf(serverName)
-                    usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer)
-                    ipForwardinf(redirectGateway)
-                    run = False
-                else:
-                    pass
-    
-
-    if os.path.exists(f"/etc/openvpn/easy-rsa/pki") and os.path.exists("/etc/openvpn/server/server.conf") and os.path.exists("/etc/openvpn/client.ovpn"):
-        setRights( device)
-        serverStart()
-"""
 else:
     print("ERROR: You need sudo rights!")
     sys.exit(1)
