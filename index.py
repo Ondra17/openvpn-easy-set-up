@@ -213,6 +213,8 @@ def log_create():
 
     if logFir == True and logSec == True:
         print("Logs files were created successfully")
+        print("     /var/log/ovpn.log")
+        print("     /var/log/ovpn-status.log")
     else:
         print("Logs files are already created")
 
@@ -755,7 +757,7 @@ if os.geteuid() == 0:
             print("Choose between easy [1] or advanced [2] configuration")
             print("Easy -> port, protocol, device, server (ip address), log")
             print("Advanced -> Extended configuration")
-            print("If you want to change them manually, after script ends go to /etc/openvpn/server.conf")
+            print("If you want to change them manually, go to /etc/openvpn/server.conf when the script is finished.")
 
             confCheck = True
             while confCheck:
