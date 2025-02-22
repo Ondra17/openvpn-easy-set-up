@@ -55,35 +55,42 @@ def dir_struc():
             
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
+def varsModify(prompt, default="NA"):
+    varsValue = input(f"{prompt}: ").strip()
+     return varsValue if varsValue else default
+
 def vars_rewrite():
     countryLetters = True
     print("\n------------ Modify vars file ------------")
     rsaCountry=input(str("Country [XX]:"))
     while countryLetters:
         charCountCountry=len(rsaCountry)
-        if charCountCountry == 2 :
+        if charCountCountry == 2:
+            countryLetters = False
+        elif charCountCountry == 0:
+            rsaCountry = "NA"
             countryLetters = False
         else:
             print("Country must consist of two letters!")
             rsaCountry=input(str("Country [XX]:"))
 
-    rsa_province=input(str("Province:"))
-    rsa_city=input(str("City:"))
-    rsa_organization=input(str("Organization:"))
-    rsa_email=input(str("email:"))
-    rsa_ou=input(str("Organization Unit:"))
+    rsaProvince = varsModify("Province")
+    rsaCity = varsModify("City")
+    rsaOrganization = varsModify("Organization")
+    rsaEmail = varsModify("Email")
+    rsaOu = varsModify("Organization Unit")
 
-    up_country=rsaCountry.upper()
+    upCountry=rsaCountry.upper()
 
 
     rsaVarsFile = "/etc/openvpn/easy-rsa/vars"
 
-    varsTextCounrty = f'set_var EASYRSA_REQ_COUNTRY	"{up_country}"\n'
-    varsTextProvince = f'set_var EASYRSA_REQ_PROVINCE	"{rsa_province}"\n'
-    varsTextCity = f'set_var EASYRSA_REQ_CITY	"{rsa_city}"\n'
-    varsTextOrg = f'set_var EASYRSA_REQ_ORG	  "{rsa_organization}"\n'
-    varsTextEmail = f'set_var EASYRSA_REQ_EMAIL	"{rsa_email}"\n'
-    varsTextOU = f'set_var EASYRSA_REQ_OU		"f{rsa_ou}"\n'
+    varsTextCounrty = f'set_var EASYRSA_REQ_COUNTRY	"{upCountry}"\n'
+    varsTextProvince = f'set_var EASYRSA_REQ_PROVINCE	"{rsaProvince}"\n'
+    varsTextCity = f'set_var EASYRSA_REQ_CITY	"{rsaCity}"\n'
+    varsTextOrg = f'set_var EASYRSA_REQ_ORG	  "{rsaOrganization}"\n'
+    varsTextEmail = f'set_var EASYRSA_REQ_EMAIL	"{rsaEmail}"\n'
+    varsTextOU = f'set_var EASYRSA_REQ_OU		"f{rsaOu}"\n'
 
 
     try:
@@ -692,7 +699,7 @@ def serverStart():
         print("OpenVPN could not be started. Try journalctl -xeu openvpn-server@server or start again.")
         sys.exit(1)
 #-------------------------------------------------------------------------------------------------------------------------------------------------
-#------------------------------------------    Main code    --------------------------------------------------------------------------------------
+#------------------------------------------     Main code     ------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 if os.geteuid() == 0:
