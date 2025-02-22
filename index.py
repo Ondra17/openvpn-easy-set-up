@@ -57,7 +57,7 @@ def dir_struc():
 
 def varsModify(prompt, default="NA"):
     varsValue = input(f"{prompt}: ").strip()
-     return varsValue if varsValue else default
+    return varsValue if varsValue else default
 
 def vars_rewrite():
     countryLetters = True
