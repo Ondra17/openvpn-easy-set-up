@@ -4,27 +4,27 @@ import subprocess
 import pandas
 import re
 
+#funkce na kontrolu inputů zda je odpověĎ yes/y nebo no/n
 def inputQuestion():
     check = False
     while check == False:
         try:
             qes = input("Type yes or no: ").strip().lower()
-            qes = qes.lower()
-            if qes not in ['yes', 'no', 'y', 'n']:
+            if qes not in ['yes', 'no', 'y', 'n']: #kontrol zda je odpověď v špatném formátu
                 raise ValueError("Invalid input. Please type 'yes' or 'no'.")
             check = True
-            if qes == "yes" or qes == "y":
+            if qes == "yes" or qes == "y": #pokud je odpovědď yes/y tak se nastaví na y
                 qes = "y"
-            else:
-                pass
+            else: #jinka se nastaví na n
+                qes = "n"
         except ValueError as e:
             print(e)
+    return qes #vrácení odpovědi
 
-    return qes
-
+#funkce na vytvoření jednoho klientského certifikátu
 def oneClient():
 
-    username = str(input("Enter Client Name:"))
+    username = str(input("Enter Client Name:")) #jméno klienta, podle toho se bude jmenovat složka a certifikát
 
     print("Common Name same as Client Name?")
     nameQes = inputQuestion()
