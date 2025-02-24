@@ -90,11 +90,13 @@ def vars_rewrite():
     rsaEmail = varsModify("Email")
     rsaOu = varsModify("Organization Unit")
 
+    #Pokud je hodnota country napsaná malým písmem jeupravena na velká písmena
     upCountry=rsaCountry.upper()
 
-
+    #Cesta k souboru vars
     rsaVarsFile = "/etc/openvpn/easy-rsa/vars"
 
+    #Hodnotz pro vložení do vars souboru skládající se z uživatelsky zadaných informací
     varsTextCounrty = f'set_var EASYRSA_REQ_COUNTRY	"{upCountry}"\n'
     varsTextProvince = f'set_var EASYRSA_REQ_PROVINCE	"{rsaProvince}"\n'
     varsTextCity = f'set_var EASYRSA_REQ_CITY	"{rsaCity}"\n'
@@ -104,7 +106,9 @@ def vars_rewrite():
 
 
     try:
+        #Otevření souboru vars v režimu append
         with open(rsaVarsFile, "a") as file:
+            #Zapsání proměných do souboru
             file.write(varsTextCounrty)
             file.write(varsTextProvince)
             file.write(varsTextCity)
@@ -113,6 +117,8 @@ def vars_rewrite():
             file.write(varsTextOU)
             file.write("#done")
         print(f"Text added to {rsaVarsFile}")
+        
+        #Ošetření chyb při práci se souborem
     except FileNotFoundError:
         print(f"Error: File '{rsaVarsFile}' does not exist.")
     except PermissionError:
@@ -122,33 +128,38 @@ def vars_rewrite():
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
+#stažení easy-rsa a příprava vars souboru
 def rsa_set_up():
-
-    os.chdir("/etc/openvpn/")
-    os.system("wget https://github.com/OpenVPN/easy-rsa/releases/download/v3.1.1/EasyRSA-3.1.1.tgz")
-    os.system("tar -xvzf EasyRSA-3.1.1.tgz")
+    os.chdir("/etc/openvpn/") #řesunutí do složky openvpn
+    os.system("wget https://github.com/OpenVPN/easy-rsa/releases/download/v3.1.1/EasyRSA-3.1.1.tgz") #stažení easy-rsa z githubu v zip souboru
+    os.system("tar -xvzf EasyRSA-3.1.1.tgz") #odzipování 
+    #přejmenování složky na easz-rsa a následné vymazání zipu
     os.system("mv EasyRSA-3.1.1 easy-rsa")
     os.system("rm -f /etc/openvpn/EasyRSA-3.1.1.tgz")
+    #přesunutí do složky easy-rsa a přejmenování vars souboru
     os.chdir("/etc/openvpn/easy-rsa/")
     os.system("mv vars.example vars")
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
+#Vytvoření certifikační autority
 def CA_build(CA_dir):
     print("\n---------- Building new Certification Authority ----------\n")
     CA_dir = '/etc/openvpn/easy-rsa'
     os.chdir(CA_dir)
-    os.system('./easyrsa init-pki')
-    os.system("mv /etc/openvpn/easy-rsa/vars /etc/openvpn/easy-rsa/pki/vars")
-    os.system('./easyrsa build-ca nopass')
+    os.system('./easyrsa init-pki') #inicializace pki
+    os.system("mv /etc/openvpn/easy-rsa/vars /etc/openvpn/easy-rsa/pki/vars") #přesunutí vars do pki složky
+    os.system('./easyrsa build-ca nopass') #vytvoření samotné CA
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
+#kontrola, zda se CA vytvořila
+#Kontroluje se pomocí podmínky zda existuje soubor ca.crt
 def CA_check():
-
     pathCA = "/etc/openvpn/easy-rsa/pki/ca.crt"
     if  os.path.exists(pathCA):
         print(f"CA were created successfully")
     else:
+        #pokud soubor neexistuje skript skončí
         print(f"CA were NOT created successfully")
         sys.exit(1)
 
