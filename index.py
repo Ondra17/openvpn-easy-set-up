@@ -484,9 +484,8 @@ def advancedConf(serverName):
             #pokud neodpovídá ip a masce požádá to znova o vyplnění
             print("Wrong format! Please enter in 'address mask' format.")  
 
-    # otázka na TLS-server
     print("Do you want TLS-SERVER? [yes/no]")
-    tlsServer = inputQuestion() #spustí se funkce na získání odpovědi y/n
+    tlsServer = inputQuestion() #spustí se funkce na získání odpovědi y/n, a zapíše do proměné
 
     if device in ("tap", "tap0"): #kontrola zda inter. není tap nebo tap0 (v tomto případě není topologie potřeba)
         pass
@@ -504,29 +503,29 @@ def advancedConf(serverName):
                 print(errorTopo)
 
     print("Do you want allow CLIENT-TO-CLIENT communication? [yes/no]")
-    ctoc = inputQuestion()
+    ctoc = inputQuestion() #spustí se funkce na získání odpovědi y/n, a zapíše do proměné
 
     print("Do you want allow DUPLICATE-CN? [yes/no]")
-    dupCN = inputQuestion()
+    dupCN = inputQuestion() #spustí se funkce na získání odpovědi y/n, a zapíše do proměné
 
     print("Do you want PING-TIMER-REM? [yes/no]")
-    pingT = inputQuestion()
+    pingT = inputQuestion() #spustí se funkce na získání odpovědi y/n, a zapíše do proměné
 
-    verbLevl = inputNumber()
+    verbLevl = inputNumber() #spuštění funkce pro získání hodnoty pro logování
 
 
     print("Do you want to add CIPHER [yes/no]")
-    cipherUse = inputQuestion()
+    cipherUse = inputQuestion() #spustí se funkce na získání odpovědi y/n, a zapíše do proměné
 
-
+    
     print("Do you want to redirect all trafict throught the VPN? (Full Tunnel) [yes/no]")
-    redirectGateway = inputQuestion()
-    if redirectGateway == "y" or redirectGateway == "yes":
+    redirectGateway = inputQuestion() #spustí se funkce na získání odpovědi y/n, a zapíše do proměné
+    if redirectGateway == "y" or redirectGateway == "yes": #kontrola zda je odpověď y
         redirectGateway = "y"
-        while dnsCheck:
+        while dnsCheck: #pokud je odpověď y, spustí se input pro zadání adresy DNS 
             try:
                 dns = input("DNS server address (format: 'address'): ")
-                ipaddress.IPv4Network(f"{dns}", strict=False)
+                ipaddress.IPv4Network(f"{dns}", strict=False) #kontrola zda se jedná o IP adresu
                 dnsCheck = False
                 dnsCheckAdd = False
             except ValueError:
@@ -534,26 +533,26 @@ def advancedConf(serverName):
     else:
         pass
 
-    if device in ("tap", "tap0"):
+    if device in ("tap", "tap0"): #kontrola zda se jedná o tap, jelikož tap nemá push route
         pass
     else:
         print("Do you want redirect olny a specific networks? (Split Tunnel) [yes/no]")
-        lanPushUse = inputQuestion()
+        lanPushUse = inputQuestion() #spustí se funkce na získání odpovědi y/n, a zapíše do proměné
 
         if lanPushUse == "y":
             pushCheck = False
             while pushCheck == False:
                 try:
-                    lanPush = input("Push route (format: 'address mask'): ")
-                    lanAddress, lanMask = lanPush.split()
-                    ipaddress.IPv4Network(f"{lanAddress}/{lanMask}", strict=False)
+                    lanPush = input("Push route (format: 'address mask'): ") #rozsah adres do kterých má server vytvořit route
+                    lanAddress, lanMask = lanPush.split() 
+                    ipaddress.IPv4Network(f"{lanAddress}/{lanMask}", strict=False) #kontrola, zda se jedná o IP adresu a masku
                     pushCheck = True
                 except ValueError:
                     print("Wrong format! Please enter in 'address mask' format.")
-
-    if redirectGateway == "n":
+    
+    if redirectGateway == "n": #pokud nebylo zapnuto aby všechna komunikace šla přes server, tak je možné vložit DNS
             print("Do you want ADD DNS address?")
-            dnsQst = inputQuestion()
+            dnsQst = inputQuestion() #spustí se funkce na získání odpovědi y/n, a zapíše do proměné
             if dnsQst == "y":
                 dnsCheck = True
             elif dnsQst == "No" or dnsQst == "n":
@@ -561,8 +560,8 @@ def advancedConf(serverName):
 
             while dnsCheck:
                 try:
-                    dns = input("DNS server address (format: 'address'): ")
-                    ipaddress.IPv4Network(f"{dns}", strict=False)
+                    dns = input("DNS server address (format: 'address'): ") #input pro vložení DNS adresy
+                    ipaddress.IPv4Network(f"{dns}", strict=False) #kontrola zda se jedná o ip adresu
                     dnsCheck = False
                     dnsCheckAdd = True
                 except ValueError:
@@ -570,9 +569,10 @@ def advancedConf(serverName):
     else:
         pass
 
-    os.system("touch /etc/openvpn/server/server.conf")
-    with open("/etc/openvpn/server/server.conf", "a") as file:
+    os.system("touch /etc/openvpn/server/server.conf") #vytvoření souboru server.conf
+    with open("/etc/openvpn/server/server.conf", "a") as file: #otevření server.conf v append modu
         file.write("#Advanced configuration\n")
+        #postupně se vkládají hodnoty podle uživatelsky navolených dat
         file.write("mode server\n")
         if tlsServer == "y":
             file.write("tls-server\n")
@@ -647,19 +647,22 @@ def advancedConf(serverName):
         file.write("status /var/log/ovpn-status.log\n")
         file.write("log /var/log/ovpn.log\n")
 
-    return port, protocol, device, cipherUse, tlsServer, redirectGateway
+    return port, protocol, device, cipherUse, tlsServer, redirectGateway #vrácení hodnot pro využití na tvorbu konfigurace pro klienty
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
+#tvorba klientské konfiurace
 def usrConfAdv(port, protocol, device, cipher, tlsServer):
     print("\n---------- Creating users configuration ----------\n")
     servRoute = False
     
     #zadání ip adresy serveru
     ip = True
+    
+    #zadání ip adresy serveru
     while ip:
         addrHost = input("Enter server URL or IP address: ")
         try:
-            # Zkontroluje, zda je zadaný text platnou IP adresou 
+            #zkontroluje, zda je zadaný text platnou IP adresou 
             ipaddress.ip_address(addrHost)
             ip = False
         except ValueError:
@@ -667,12 +670,9 @@ def usrConfAdv(port, protocol, device, cipher, tlsServer):
             print(f"Invalid IP address: {addrHost}")
 
 
-
-    protocol = re.sub(r'\d', '', protocol)
-
-
-    os.system("touch /etc/openvpn/client.ovpn")
-    with open("/etc/openvpn/client.ovpn", "a") as file:
+    os.system("touch /etc/openvpn/client.ovpn") #tvorba client.ovpn souboru pro klientskou konfiuraci
+    with open("/etc/openvpn/client.ovpn", "a") as file: #otevřená client.ovpn v append modu
+        #postupné přidání hodnot, dle uživatelsky zadaných informací ze serverové konfiurace
         file.write("#Advanced configuration\n")
         if tlsServer == "y":
             file.write("tls-client\n")
@@ -701,6 +701,7 @@ def usrConfAdv(port, protocol, device, cipher, tlsServer):
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
+#funkce pro získání server name pro vytvoření certifikátu a privátního klíče serveru
 def server_name_input():
     print("\n---------- Enter Server Name for server certificate ----------")
     Name = None
@@ -713,33 +714,35 @@ def server_name_input():
     return Name
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
-
+#nastavení potřebných oprávnění
 def setRights(device):
-    #rights for log files
+    #nastavení vlastnictví a oprávnění pro log soubory
     os.system(f"chown openvpn:openvpn /var/log/ovpn-status.log")
     os.system(f"chown openvpn:openvpn /var/log/ovpn.log")
     os.system(f"chmod 664 /var/log/ovpn-status.log")
     os.system(f"chmod 664 /var/log/ovpn.log")
-    #rights for device
+    #nastavení vlastnictví a oprávnění na interface
     device = re.sub(r'\d+', '', device)
     os.system(f"chown openvpn:openvpn /dev/net/{device}")
     os.system(f"chmod 0666 /dev/net/{device}")
 
 def setRouting():print("---------- SELinux setup and routing ----------")
     print("\nSetting SELinux permissive mode for OpenVPN.")
+    #povolení ip forwardingu zapsáním do souboru sysctl.conf
     os.system('echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf')
+    #nastavení selinuxu aby se pro openvpn vypnul ale stále zaznamenává jejich funkci
     os.system("semanage permissive -a openvpn_t")
-    #os.system("firewall-cmd --permanent --add-service=openvpn")
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
 def serverStart():
-    print("\n---------- Starting OpenVPN ----------\n")
-    os.system("systemctl restart openvpn-server@server")
-    isActive = subprocess.run(["systemctl", "is-active", "openvpn-server@server"], capture_output=True, text=True)
+    print("\n---------- Starting OpenVPN ----------\n") 
+    os.system("systemctl restart openvpn-server@server") #restartování openvpn
+    isActive = subprocess.run(["systemctl", "is-active", "openvpn-server@server"], capture_output=True, text=True) #kontrola zda je openvpn aktivní
     if isActive.stdout.strip() == "active":
+        #pokud je aktivní zapne se automatické zapnutí po restartu
         os.system("systemctl enable openvpn-server@server")
-        print("OpenVPN is acive!")
+        print("OpenVPN is active!")
         #os.system("systemctl status openvpn-server@server")
     else:
         print("OpenVPN could not be started. Try journalctl -xeu openvpn-server@server or start again.")
@@ -748,7 +751,7 @@ def serverStart():
 #------------------------------------------     Main code     ------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
-if os.geteuid() == 0:
+if os.geteuid() == 0: #Kontroluje zda má uživatel root oprávnění
     confDone = False
     varsDone = False
     run = True
@@ -757,56 +760,54 @@ if os.geteuid() == 0:
     CA_dir = '/etc/openvpn/easy-rsa'
     easyrsa_path = "/usr/share/easy-rsa/3/easyrsa"
 
+    #spouštění jednotlivých funkcí
     installation()
-    #check_easyrsa()
     check_openvpn()
     print("Both Easy-RSA and OpenVPN are installed and functioning correctly.")
     dir_struc()
 
-    if os.path.isdir("/etc/openvpn/server") and os.path.isdir("/etc/openvpn/users"):
+    if os.path.isdir("/etc/openvpn/server") and os.path.isdir("/etc/openvpn/users"): #kontrola zda se vytvořily server a users
         rsa_set_up()
     else:
         print("/etc/openvpn/server and /etc/openvpn/users do not exist!")
         sys.exit(1)
     
-    if os.path.isfile('/etc/openvpn/easy-rsa/vars'):
+    if os.path.isfile('/etc/openvpn/easy-rsa/vars'): #kontrola zda existuje soubor vars
         while rewrite:
-            with open('/etc/openvpn/easy-rsa/vars', 'r') as varsFile:
+            with open('/etc/openvpn/easy-rsa/vars', 'r') as varsFile: #pokud existuje, otevře se v read modu
                 content = varsFile.read()
-                if 'done' in content:
+                if 'done' in content: #pokud obsahuje slovo done, tak skript ví, že již byl tento soubor upraven 
                     CA_build(CA_dir)
                     CA_check()
-                    varsDone = True
                     rewrite = False
                 else:
+                    #pokud neobsahuje slovo done, tak spustí vars_rewrite
                     vars_rewrite()
                     rewrite = True
-
-    #CA_build(CA_dir)
-    #CA_check()
     
     server_dh_gen(CA_dir)
     log_create()
-    if os.path.isfile("/etc/openvpn/easy-rsa/pki/vars"):
-        serverName = server_name_input()
+    if os.path.isfile("/etc/openvpn/easy-rsa/pki/vars"): #kontrola zda se vars nachází ve složce pki
+        serverName = server_name_input() #získání jména pro vytvoření certifikátů
         server_cert_gen(CA_dir, serverName)
     else:
         print("Vars file were not moved into /etc/openvpn/easy-rsa/pki/vars")
         sys.exit(1)
 
-    print(f"this is server name: {serverName}")
-    if serverName is not None and os.path.isfile(f"/etc/openvpn/easy-rsa/pki/issued/{serverName}.crt"):
+    #print(f"this is server name: {serverName}")
+    if serverName is not None and os.path.isfile(f"/etc/openvpn/easy-rsa/pki/issued/{serverName}.crt"): #kontrola zda existuje certifikát serveru a serverName není prázdný
         while run:
+            #info ohledně konfigurací
             print("\n---------- Creating configuration for server ----------")
             print("Choose between easy [1] or advanced [2] configuration")
-            print("Easy -> port, protocol, device, server (ip address), log")
+            print("Easy -> port, protocol, device, server (ip address)")
             print("Advanced -> Extended configuration")
             print("If you want to change them manually, go to /etc/openvpn/server.conf when the script is finished.")
 
             confCheck = True
             while confCheck:
-                confQues = input("Write 1 or 2:")
-                if confQues.strip() == "":
+                confQues = input("Write 1 or 2:") #input pro výběr konfigurace
+                if confQues.strip() == "": #kontrola zda proměná není prázdná
                     print("Invalid input! Please enter 1 or 2.")
                 elif confQues == "1" or confQues == "2":
                     confCheck = False
@@ -814,41 +815,42 @@ if os.geteuid() == 0:
                     print("Invalid input! Please enter 1 or 2.")
 
 
-                if confQues == "1":
+                if confQues == "1": #spuštění pro jednoduchou konfiguraci
                     port, protocol, device = easyConf(serverName)
                     usrConfEasy(port, protocol, device)
                     run = False
-                    confDone = True
-                elif confQues == "2":
+                elif confQues == "2": #spuštění pro pokročilou konfiguraci
                     port, protocol, device, cipherUse, tlsServer, redirectGateway = advancedConf(serverName)
                     usrConfAdv(port, protocol, device, cipherUse, tlsServer)
                     setRouting()
                     run = False
-                    confDone = True
-    elif serverName is None:
+                    
+    elif serverName is None: 
         print("You must enter Server Name!")
         sys.exit(1)
     elif os.path.isfile(f"/etc/openvpn/easy-rsa/pki/issued/{serverName}.crt"):
         print("Server certificate was not created!")
         sys.exit(1)
 
-    
-    if os.path.isfile("/var/log/ovpn.log") and os.path.isfile("/var/log/ovpn-status.log"):
+    rightsDone = False
+    if os.path.isfile("/var/log/ovpn.log") and os.path.isfile("/var/log/ovpn-status.log"): #kontrola zda existují logovací soubory
         setRights(device)
+        rightsDone = True
     else:
         pritn("Logs file were not created!")
     
-    if varsDone and confDone:
+    if rightsDone: #kontrola zda se oprávnění nastavili správně
         serverStart()
     else:
         print("Something went wrong. Start from the beginning")
 
     print("\n---------- Certificate generation ----------")
+    #možné vytvoření klientských certifikátů
     print("Do you want add users certificates?")
-    usrCert = inputQuestion()
+    usrCert = inputQuestion() #spustí se funkce na získání odpovědi y/n, a zapíše do proměné
     if usrCert == "y":
-        scriptPath = os.path.dirname(os.path.abspath(__file__))
-        os.system(f"python3 {scriptPath}/create_users.py")
+        scriptPath = os.path.dirname(os.path.abspath(__file__)) #získání cesty k index.py (create_users.py se nacházi ve stejné složce)
+        os.system(f"python3 {scriptPath}/create_users.py") #spuštění create_users.pz
     else:
         print("You can add user certs via create_users.py script.")
 
