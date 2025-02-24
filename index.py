@@ -164,71 +164,72 @@ def CA_check():
         sys.exit(1)
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
-
+#tvorba cerfitikátu pro server
 def server_cert_gen(CA_dir, serverName):
 
-        try:
-            print("\n---------- Generating new server certificate ----------\n")
-            os.chdir("/etc/openvpn/easy-rsa")
-            os.chdir(CA_dir)
+    try:
+        print("\n---------- Generating new server certificate ----------\n")
+        os.chdir("/etc/openvpn/easy-rsa")
+        os.chdir(CA_dir)
 
-            process = subprocess.Popen(
-                ["./easyrsa", "gen-req", serverName, "nopass"],
-                stdin=subprocess.PIPE,
-                text=True
-                )
-                                
-            process.communicate(input=f"{serverName}\n")
+        #Spuštění generování s jménem, s hodnotou,k terou uživatel zadal
+        process = subprocess.Popen(
+            ["./easyrsa", "gen-req", serverName, "nopass"],
+            stdin=subprocess.PIPE,
+            text=True
+        )
 
-            if process.returncode != 0:
-                raise subprocess.CalledProcessError(process.returncode, process.args)
+        #automaticky vyplní common name             
+        process.communicate(input=f"{serverName}\n")
 
-        except subprocess.CalledProcessError as e:
-            print(f"Certificate creation error: {e}")
+        if process.returncode != 0:
+            raise subprocess.CalledProcessError(process.returncode, process.args)
 
-        os.system(f'./easyrsa sign-req server {serverName}')
+    except subprocess.CalledProcessError as e:
+        print(f"Certificate creation error: {e}")
 
-        if os.path.isfile(f"/etc/openvpn/easy-rsa/pki/issued/{serverName}.crt") or os.path.isfile(f"/etc/openvpn/easy-rsa/pki/private/{serverName}.key"):
-            pass
-        else:
-            print("The server private key or server certificate was not successfully created!")
-            sys.exit(1)
+    #podepsání certifikátu
+    os.system(f'./easyrsa sign-req server {serverName}')
 
-        if os.path.isfile(f"/etc/openvpn/easy-rsa/pki/issued/{serverName}.crt") and os.path.isfile(f"/etc/openvpn/easy-rsa/pki/private/{serverName}.key"):
-            os.system("cp /etc/openvpn/easy-rsa/pki/ca.crt /etc/openvpn/server/")
-            os.system("cp /etc/openvpn/easy-rsa/pki/dh.pem /etc/openvpn/server/")
-            os.system(f"cp /etc/openvpn/easy-rsa/pki/private/{serverName}.key /etc/openvpn/server/")
-            os.system(f"cp /etc/openvpn/easy-rsa/pki/issued/{serverName}.crt /etc/openvpn/server/")
+    #kontrola, zda byl certifikát a privátní klíč úspěšně vytvořen
+    if not os.path.isfile(f"/etc/openvpn/easy-rsa/pki/issued/{serverName}.crt") or not os.path.isfile(f"/etc/openvpn/easy-rsa/pki/private/{serverName}.key"):
+        print("The server private key or server certificate was not successfully created!")
+        sys.exit(1)
+
+    #kopírování potřebných souborů do serverového adresáře
+    os.system("cp /etc/openvpn/easy-rsa/pki/ca.crt /etc/openvpn/server/")
+    os.system("cp /etc/openvpn/easy-rsa/pki/dh.pem /etc/openvpn/server/")
+    os.system(f"cp /etc/openvpn/easy-rsa/pki/private/{serverName}.key /etc/openvpn/server/")
+    os.system(f"cp /etc/openvpn/easy-rsa/pki/issued/{serverName}.crt /etc/openvpn/server/")
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
-
+#Generování Diffie-Hellman
 def server_dh_gen(CA_dir):
     print("\n---------- generating Diffie-Hellman parameter ----------\n")
     os.chdir(CA_dir)
     os.system('./easyrsa gen-dh')
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
-
+#tvorba logovacích souborů
 def log_create():
     print("\n---------- Creating logs file ----------\n")
 
     logFir = False
     logSec = False
-    """
-    if os.path.isfile('/var/log/openvpn'):
-        pass
-    else:
-        os.system('mkdir -p /var/log/openvpn/')
-    """
+
+    #kontrola zda již existuje status log   
     if os.path.isfile('/var/log/ovpn-status.log'):
-        pass
+        print("Status log is already created")
     else:
+        #pokud neexistuje tak se vytvoří
         os.system('touch /var/log/ovpn-status.log')
         logFir = True
 
+    #kontrola zda již existuje klasický log  
     if os.path.isfile('/var/log/ovpn.log'):
-        pass
+        print("Clasic log is already created")
     else:
+        #pokud neexistuje tak se vytvoří
         os.system('touch /var/log/ovpn.log')
         logSec = True
 
@@ -236,11 +237,9 @@ def log_create():
         print("Logs files were created successfully")
         print("     /var/log/ovpn.log")
         print("     /var/log/ovpn-status.log")
-    else:
-        print("Logs files are already created")
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
-
+#tvorba jednoduché konfigurace
 def easyConf(serverName):
     print("\n---------- Creating server configuration ----------\n")
     port = None
@@ -257,8 +256,9 @@ def easyConf(serverName):
 
     portCheck = True
     while portCheck == True:
-        port = input("Port number?(default openvpn 1194)")
-        if port.strip() == "":
+        port = input("Port number?(default openvpn 1194)").strip() #input na zadání čísla portu
+        if port == "": 
+            #když je prázdný nastaví se na 1194
             port = "1194"
             portCheck = False
         else:
