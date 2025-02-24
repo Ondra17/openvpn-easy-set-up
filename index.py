@@ -59,9 +59,10 @@ def dir_struc():
             
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
-#funkce, které sbírá data pro soubor vars, pokud bude input prázdný vloží se NA
+#funkce načte hodnoty, poslané z vars_rewrite
 def varsModify(prompt, default="NA"):
     varsValue = input(f"{prompt}: ").strip()
+    #Pokud je vstup prázdný, tak vrátí hodnotu NA
     return varsValue if varsValue else default
 
 def vars_rewrite():
@@ -75,9 +76,10 @@ def vars_rewrite():
         if charCountCountry == 2:
             countryLetters = False
         elif charCountCountry == 0:
-            rsaCountry = "NA"
+            rsaCountry = "NA" #Pokud je hodnota Country prázdná naství NA
             countryLetters = False
         else:
+            #Pokud hodnota nesplňuje podmínky, input se objeví znovu
             print("Country must consist of two letters!")
             rsaCountry=input(str("Country [XX]:"))
 
@@ -98,7 +100,7 @@ def vars_rewrite():
     varsTextCity = f'set_var EASYRSA_REQ_CITY	"{rsaCity}"\n'
     varsTextOrg = f'set_var EASYRSA_REQ_ORG	  "{rsaOrganization}"\n'
     varsTextEmail = f'set_var EASYRSA_REQ_EMAIL	"{rsaEmail}"\n'
-    varsTextOU = f'set_var EASYRSA_REQ_OU		"f{rsaOu}"\n'
+    varsTextOU = f'set_var EASYRSA_REQ_OU		"{rsaOu}"\n'
 
 
     try:
