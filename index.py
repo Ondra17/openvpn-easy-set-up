@@ -262,50 +262,59 @@ def easyConf(serverName):
             port = "1194"
             portCheck = False
         else:
+            #kontrola zda je port číslo, pokud ne vrátí se to zpět na input
             try:
                 port = int(port)
                 portCheck = False
             except ValueError:
                 print("Invalid input! Please enter a valid port number.")
 
+    #zadání a kontrola protokolu
     protocolCheck = True
     while protocolCheck:
+        #zadaná hodnota se automaticky změní na malá písmena
         protocol = input("protocol? (UDP or TCP): ").strip().lower()
-        if protocol == "":
+        if protocol == "": #pokud je hodnota prázdná, tak se vloží protokol udp
             protocol = "udp"
             print("Default UDP is set.")
             protocolCheck = False
-        elif protocol in ("udp", "tcp"):
+        elif protocol in ("udp", "tcp"): #pokud je hodnota tcp nebo udp tak se nechá
             protocolCheck = False
         else:
+            #pokud je tam něco jiného než udp/tcp automaticky se nastaví na udp
             protocol = "udp"
             print("Invalid protocol, default UDP is set.")
             protocolCheck = False
-    
+
+    #zadání a kontrola interfacu
     deviceCheck = True
     while deviceCheck:
         device = input("device? (tun or tap)").strip().lower()
-        if device == "":
+        if device == "": #pokud je hodnota prázdná, tak se automaticky vloží inter. tun0
             device = "tun0"
             print("Default tun0 is set.")
             deviceCheck = False
-        elif device in ("tun", "tap", "tun0", "tap0"):
+        elif device in ("tun", "tap", "tun0", "tap0"): #pokud je hodnota tun/tun0/tap/tap0, tak se ponechá
             deviceCheck = False
         else:
+            #pokud je tam něco jiného ne předchozí hodnoty automaticky se nastaví tun0
             device = "tun0"
             print("Invalid device, default tun0 is set.")
 
+    #zadání a kontrola rozsahu IP adres
     while networkCheck == False:
         try:
-            network = input("Network (format: 'address mask'): ")
-            address, mask = network.split()
-            ipaddress.IPv4Network(f"{address}/{mask}", strict=False)
+            network = input("Network (format: 'address mask'): ") #input na vložení ip adresy a masky
+            address, mask = network.split() #rozdělení adresy a masky
+            ipaddress.IPv4Network(f"{address}/{mask}", strict=False) #kontrolo zda je to IP adresa a maska
             networkCheck = True
         except ValueError:
+            #pokud neodpovídá ip a masce požádá to znova o vyplnění
             print("Wrong format! Please enter in 'address mask' format.") 
 
-    os.system("touch /etc/openvpn/server/server.conf")
-    with open("/etc/openvpn/server/server.conf", "a") as file:
+    os.system("touch /etc/openvpn/server/server.conf") #vytvoření souboru server.conf
+    with open("/etc/openvpn/server/server.conf", "a") as file: #otevtření souboru v append modu
+        #vkládání jednotlivých hodnot do konfiurace
         file.write("#Easy configuration\n")
         file.write("mode server \n")
         file.write(f"port {port} \n")
@@ -328,16 +337,23 @@ def easyConf(serverName):
         file.write("status /var/log/ovpn-status.log\n")
         file.write("log /var/log/ovpn.log")
 
-    return port, protocol, device
+    return port, protocol, device #vrácení hodnot pro klientskou konfiguraci
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
-
-def usrConfEasy(port, protocol, device):
+#tvorba konfigurace pro klienty
+def usrConfEasy(port, protocol, device): #hodnoty ze serverové konfigurace
 
     print("\n---------- Creating client configuration ----------\n")
-
-    addrHost = input("Enter server URL or IP address: ")
-    protocol = re.sub(r'\d', '', protocol)
+    #   
+    ip = True
+    while ip:
+        addrHost = input("Enter server URL or IP address: ")
+        try:
+            # Zkontroluje, zda je zadaný text platnou IP adresou 
+            ipaddress.ip_address(addrHost)
+            ip = False
+        except ValueError:
+            print(f"Invalid IP address: {addrHost}")
 
     os.system("sudo touch /etc/openvpn/client.ovpn")
     with open("/etc/openvpn/client.ovpn", "a") as file:
