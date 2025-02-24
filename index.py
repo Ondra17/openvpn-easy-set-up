@@ -726,7 +726,8 @@ def setRights(device):
     os.system(f"chown openvpn:openvpn /dev/net/{device}")
     os.system(f"chmod 0666 /dev/net/{device}")
 
-def setRouting():print("---------- SELinux setup and routing ----------")
+def setRouting():
+    print("\n---------- SELinux setup and routing ----------")
     print("\nSetting SELinux permissive mode for OpenVPN.")
     #povolení ip forwardingu zapsáním do souboru sysctl.conf
     os.system('echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf')
