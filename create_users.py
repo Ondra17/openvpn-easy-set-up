@@ -59,9 +59,10 @@ def oneClient():
         except subprocess.CalledProcessError as e:
             print(f"Certificate creation error: {e}")
 
-    createStruc(username) #volá funkci createStruc se zadaným usernamem
+    createStruc(username)
     addCert(username)
-    #zip of clients files
+    
+    #komprimace souborů uživatele do ZIP
     os.chdir(f"/etc/openvpn/users/{username}")
     os.system(f"zip -r ovpn_{username} *")
 
