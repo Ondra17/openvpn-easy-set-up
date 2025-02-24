@@ -6,17 +6,16 @@ import sys
 import ipaddress
 import re
 
-#Do you want to update DNF repository
 
 def installation():
-    #subprocess.run(["dnf", "update", "-y"])
+    # stažení epel-release a openvpn
     subprocess.run(["dnf", "install", "-y", "epel-release"])
     subprocess.run(["dnf", "install", "-y", "openvpn"])
 
-    #easyrsa_path = "/usr/share/easy-rsa/3/easyrsa"
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------    
 
+# kontrola, zda se openvpn stáhlo správně
 def check_openvpn():
     try:
         result = subprocess.run(["openvpn", "--version"], text=True)
@@ -36,17 +35,22 @@ def check_openvpn():
 
 def dir_struc():
 
+    #cesty k složkám pro uživatele a konfiguraci serveru
     serverPath = "/etc/openvpn/server"
     usersPath = "/etc/openvpn/users"
 
     if not os.path.exists(serverPath):
+        #vytvoření složky pro konfiguraci serveru
         subprocess.run(["mkdir", "-p", "/etc/openvpn/server"])
     else:
         pass
     if not os.path.exists(usersPath):
+        #vytvoření složky, kde budou certifikáty, klíče a kofigurace jednotlivích uživatelů
         subprocess.run(["mkdir", "/etc/openvpn/users"])
     else:
         pass
+    
+    #Errorové hlášky, pokud se nevytvoří složky
     if os.path.exists(serverPath) and os.path.exists(usersPath):
         print(f"The paths '{serverPath}' and '{usersPath}' were created successfully")
     else:
@@ -55,6 +59,7 @@ def dir_struc():
             
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
+#funkce, které sbírá data pro soubor vars, pokud bude input prázdný vloží se NA
 def varsModify(prompt, default="NA"):
     varsValue = input(f"{prompt}: ").strip()
     return varsValue if varsValue else default
@@ -62,6 +67,7 @@ def varsModify(prompt, default="NA"):
 def vars_rewrite():
     countryLetters = True
     print("\n------------ Modify vars file ------------")
+    #input pro hodnotu Country
     rsaCountry=input(str("Country [XX]:"))
     while countryLetters:
         charCountCountry=len(rsaCountry)
@@ -74,6 +80,7 @@ def vars_rewrite():
             print("Country must consist of two letters!")
             rsaCountry=input(str("Country [XX]:"))
 
+    #jednotlívé hodnoty pro funkci varsModify
     rsaProvince = varsModify("Province")
     rsaCity = varsModify("City")
     rsaOrganization = varsModify("Organization")
