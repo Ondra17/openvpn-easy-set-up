@@ -198,18 +198,19 @@ def addCert(username):
 #---------------------------------------------------------------------------------
 #--------------------------------- Main Code -------------------------------------
 #---------------------------------------------------------------------------------
-
+#kontroluje, zda má uživatel rootovská oprávnění
 if os.geteuid() == 0:
     #if os.path.isfile('/etc/openvpn/users') and os.path.isfile('/etc/openvpn/easy-rsa/pki'):
         add = True
         while add:
+            #výběr typu přidání uživatele
             print("Singleuser -> 1 \nMultiuser -> 2")
             howAdd = str(input("Do you want add single user or add via csv multiuser? (1 or 2)"))
 
-            if howAdd == "1":
+            if howAdd == "1": #Spustí přidání jednoho uživatele
                 oneClient()
                 add = False
-            elif howAdd == "2":
+            elif howAdd == "2": #Spustí přidání více uživatelů pomocí csv
                 csvAdd()
                 add = False
             else:
