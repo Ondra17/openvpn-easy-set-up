@@ -484,9 +484,9 @@ def advancedConf(serverName):
             #pokud neodpovídá ip a masce požádá to znova o vyplnění
             print("Wrong format! Please enter in 'address mask' format.")  
 
-    
+    # otázka na TLS-server
     print("Do you want TLS-SERVER? [yes/no]")
-    tlsServer = inputQuestion() #spustí se funkce na získání odpovědi y/n, která se zapíše do proměné
+    tlsServer = inputQuestion() #spustí se funkce na získání odpovědi y/n
 
     if device in ("tap", "tap0"): #kontrola zda inter. není tap nebo tap0 (v tomto případě není topologie potřeba)
         pass
@@ -503,31 +503,22 @@ def advancedConf(serverName):
             except ValueError as errorTopo:
                 print(errorTopo)
 
-
     print("Do you want allow CLIENT-TO-CLIENT communication? [yes/no]")
-    ctoc = inputQuestion() #spustí se funkce na získání odpovědi y/n, která se zapíše do proměné
+    ctoc = inputQuestion()
 
     print("Do you want allow DUPLICATE-CN? [yes/no]")
-    dupCN = inputQuestion() #spustí se funkce na získání odpovědi y/n, která se zapíše do proměné
+    dupCN = inputQuestion()
 
     print("Do you want PING-TIMER-REM? [yes/no]")
-    pingT = inputQuestion() #spustí se funkce na získání odpovědi y/n, která se zapíše do proměné
+    pingT = inputQuestion()
 
-    verbLevl = inputNumber() #spustí se funce k získání hodnoty pro logování
+    verbLevl = inputNumber()
 
 
     print("Do you want to add CIPHER [yes/no]")
-    cipherUse = inputQuestion() #spustí se funkce na získání odpovědi y/n, která se zapíše do proměné
+    cipherUse = inputQuestion()
 
-    print("Do you want add specific gateway (push route-gateway)")
-    gatewayUse = inputQuestion() #spustí se funkce na získání odpovědi y/n, která se zapíše do proměné
 
-    if gatewayUse == "y":
-        gateway = '.'.join(address.split('.')[:-1]+["1"])  
-    else:
-        pass
-
-    #
     print("Do you want to redirect all trafict throught the VPN? (Full Tunnel) [yes/no]")
     redirectGateway = inputQuestion()
     if redirectGateway == "y" or redirectGateway == "yes":
@@ -624,10 +615,6 @@ def advancedConf(serverName):
             else:
                 pass
             
-        if gatewayUse == "y":
-            file.write(f"push route-gateway {gateway}\n")
-        else:
-            pass
         if redirectGateway == "y" and dnsCheckAdd == False:
             file.write('push "redirect-gateway def1"\n')
             file.write(f'push "dhcp-option DNS {dns}"\n')
@@ -660,10 +647,10 @@ def advancedConf(serverName):
         file.write("status /var/log/ovpn-status.log\n")
         file.write("log /var/log/ovpn.log\n")
 
-    return port, protocol, device, cipherUse, gatewayUse, tlsServer, redirectGateway
+    return port, protocol, device, cipherUse, tlsServer, redirectGateway
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
-def usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer):
+def usrConfAdv(port, protocol, device, cipher, tlsServer):
     print("\n---------- Creating users configuration ----------\n")
     servRoute = False
     
@@ -679,17 +666,7 @@ def usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer):
             #pokud ne, tak se input spustí znovu
             print(f"Invalid IP address: {addrHost}")
 
-    if gatewayUse == "y":
-        while servRoute == False:
-            try:
-                serverRoute = input("Route into the server (format: 'address mask'): ")
-                address, mask = serverRoute.split()
-                ipaddress.IPv4Network(f"{address}/{mask}", strict=False)
-                networkCheck = True
-            except ValueError:
-                print("Wrong format! Please enter in 'address mask' format.") 
-    else:
-        pass
+
 
     protocol = re.sub(r'\d', '', protocol)
 
@@ -716,10 +693,6 @@ def usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer):
             file.write("auth SHA512\n")
             file.write("tls-cipher TLS-DHE-RSA-WITH-AES-256-GCM-SHA384:TLS-DHE-RSA-WITH-AES-256-CBC-SHA256:TLS-DHE-RSA-WITH-AES-128-GCM-SHA256:TLS-DHE-RSA-WITH-AES-128-CBC-SHA256\n")
         else:
-            pass
-        if gatewayUse == "y":
-            file.write(f"route {serverRoute}\n")
-        else: 
             pass
         file.write("mute-replay-warnings\n")
         file.write("persist-tun\n")
@@ -752,10 +725,10 @@ def setRights(device):
     os.system(f"chown openvpn:openvpn /dev/net/{device}")
     os.system(f"chmod 0666 /dev/net/{device}")
 
-def firewallRules():
+def setRouting():print("---------- SELinux setup and routing ----------")
+    print("\nSetting SELinux permissive mode for OpenVPN.")
     os.system('echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf')
     os.system("semanage permissive -a openvpn_t")
-    print("Setting SELinux permissive mode for OpenVPN.")
     #os.system("firewall-cmd --permanent --add-service=openvpn")
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
@@ -847,9 +820,9 @@ if os.geteuid() == 0:
                     run = False
                     confDone = True
                 elif confQues == "2":
-                    port, protocol, device, cipherUse, gatewayUse, tlsServer, redirectGateway = advancedConf(serverName)
-                    usrConfAdv(port, protocol, device, cipherUse, gatewayUse, tlsServer)
-                    firewallRules()
+                    port, protocol, device, cipherUse, tlsServer, redirectGateway = advancedConf(serverName)
+                    usrConfAdv(port, protocol, device, cipherUse, tlsServer)
+                    setRouting()
                     run = False
                     confDone = True
     elif serverName is None:
