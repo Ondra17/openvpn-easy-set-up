@@ -344,7 +344,7 @@ def easyConf(serverName):
 def usrConfEasy(port, protocol, device): #hodnoty ze serverové konfigurace
 
     print("\n---------- Creating client configuration ----------\n")
-    #   
+    #zadání ip adresy serveru
     ip = True
     while ip:
         addrHost = input("Enter server URL or IP address: ")
@@ -353,10 +353,12 @@ def usrConfEasy(port, protocol, device): #hodnoty ze serverové konfigurace
             ipaddress.ip_address(addrHost)
             ip = False
         except ValueError:
+            #pokud ne, tak se input spustí znovu
             print(f"Invalid IP address: {addrHost}")
 
-    os.system("sudo touch /etc/openvpn/client.ovpn")
-    with open("/etc/openvpn/client.ovpn", "a") as file:
+    os.system("sudo touch /etc/openvpn/client.ovpn") #vytvoření souboru client.ovpn
+    with open("/etc/openvpn/client.ovpn", "a") as file: #otevření souboru v append modu
+        #přidání hodnot do client.ovpn
         file.write("#Easy configuration\n")
         file.write("client\n")
         file.write(f"remote {addrHost} {port}\n")
@@ -370,36 +372,44 @@ def usrConfEasy(port, protocol, device): #hodnoty ze serverové konfigurace
         file.write("persist-key\n")
         file.write("verb 3\n")
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------
+
+#funkce na kontrolu inputů zda je odpověĎ yes/y nebo no/n
 def inputQuestion():
     check = False
     while check == False:
         try:
             qes = input("Type yes or no: ").strip().lower()
-            if qes not in ['yes', 'no', 'y', 'n']:
+            if qes not in ['yes', 'no', 'y', 'n']: #kontrol zda je odpověď v špatném formátu
                 raise ValueError("Invalid input. Please type 'yes' or 'no'.")
             check = True
-            if qes == "yes" or qes == "y":
+            if qes == "yes" or qes == "y": #pokud je odpovědď yes/y tak se nastaví na y
                 qes = "y"
-            else:
+            else: #jinka se nastaví na n
                 qes = "n"
         except ValueError as e:
             print(e)
-    return qes
+    return qes #vrácení odpovědi
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------
+
+#input na hodnotu obsahu logovacích souborů
 def inputNumber():
     while True:
         try:
+            #input na vložení čísla
             num = int(input("Level of LOGGING [0-11]: ").strip())
-            if 0 <= num <= 11:
+            if 0 <= num <= 11: #kontrola zda je to číslo mezi 0 a 11 včetně
                 return num
-            else:
+            else: #pokud ne opět se spustí input
                 print("Number must be between 0 and 11.")
-        except ValueError:
+        except ValueError: #kontrolo zda se jedná o číslici
             print("Invalid input! Please enter a number between 0 and 11.")
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
+#tvorba pokročilé konfigurace pro server
 def advancedConf(serverName):
     port = None
     protocol = None
@@ -417,66 +427,77 @@ def advancedConf(serverName):
     dnsCheckAdd = False
 
     portCheck = True
-    while portCheck:
-        port = input("Port number?(default openvpn 1194)")
-        if port.strip() == "":
+    while portCheck == True:
+        port = input("Port number?(default openvpn 1194)").strip() #input na zadání čísla portu
+        if port == "": 
+            #když je prázdný nastaví se na 1194
             port = "1194"
             portCheck = False
         else:
+            #kontrola zda je port číslo, pokud ne vrátí se to zpět na input
             try:
                 port = int(port)
                 portCheck = False
             except ValueError:
                 print("Invalid input! Please enter a valid port number.")
 
+    #zadání a kontrola protokolu
     protocolCheck = True
     while protocolCheck:
+        #zadaná hodnota se automaticky změní na malá písmena
         protocol = input("protocol? (UDP or TCP): ").strip().lower()
-        if protocol == "":
+        if protocol == "": #pokud je hodnota prázdná, tak se vloží protokol udp
             protocol = "udp"
             print("Default UDP is set.")
             protocolCheck = False
-        elif protocol in ("udp", "tcp"):
+        elif protocol in ("udp", "tcp"): #pokud je hodnota tcp nebo udp tak se nechá
             protocolCheck = False
         else:
+            #pokud je tam něco jiného než udp/tcp automaticky se nastaví na udp
             protocol = "udp"
             print("Invalid protocol, default UDP is set.")
             protocolCheck = False
-    
+
+    #zadání a kontrola interfacu
     deviceCheck = True
     while deviceCheck:
         device = input("device? (tun or tap)").strip().lower()
-        if device == "":
+        if device == "": #pokud je hodnota prázdná, tak se automaticky vloží inter. tun0
             device = "tun0"
             print("Default tun0 is set.")
             deviceCheck = False
-        elif device in ("tun", "tap", "tun0", "tap0"):
+        elif device in ("tun", "tap", "tun0", "tap0"): #pokud je hodnota tun/tun0/tap/tap0, tak se ponechá
             deviceCheck = False
         else:
+            #pokud je tam něco jiného ne předchozí hodnoty automaticky se nastaví tun0
             device = "tun0"
             print("Invalid device, default tun0 is set.")
 
+    #zadání a kontrola rozsahu IP adres
     while networkCheck == False:
         try:
-            network = input("Network (format: 'address mask'): ")
-            address, mask = network.split()
-            ipaddress.IPv4Network(f"{address}/{mask}", strict=False)
+            network = input("Network (format: 'address mask'): ") #input na vložení ip adresy a masky
+            address, mask = network.split() #rozdělení adresy a masky
+            ipaddress.IPv4Network(f"{address}/{mask}", strict=False) #kontrolo zda je to IP adresa a maska
             networkCheck = True
         except ValueError:
-            print("Wrong format! Please enter in 'address mask' format.") 
+            #pokud neodpovídá ip a masce požádá to znova o vyplnění
+            print("Wrong format! Please enter in 'address mask' format.")  
 
-
+    # otázka na TLS-server
     print("Do you want TLS-SERVER? [yes/no]")
-    tlsServer = inputQuestion()
+    tlsServer = inputQuestion() #spustí se funkce na získání odpovědi y/n
 
-    if device in ("tap", "tap0"):
+    if device in ("tap", "tap0"): #kontrola zda inter. není tap nebo tap0 (v tomto případě není topologie potřeba)
         pass
     else:
+        #výběr typu topologie
         topoCheck = False
         while topoCheck == False:
             try:
+                #input na zadání hodnoty 1 až 4 včetně
                 topology = int(input("Do you want add type of topology? (subnet[1] / p2p[2] / net30[3] / skip[4]):"))
-                if topology not in [1, 2, 3, 4]:
+                if topology not in [1, 2, 3, 4]: #pokud není správná hodnota, spustí se znovu input
                     raise ValueError("Invalid input. Please type 1 / 2 / 3 / 4.")
                 topoCheck = True
             except ValueError as errorTopo:
@@ -643,7 +664,18 @@ def advancedConf(serverName):
 def usrConfAdv(port, protocol, device, cipher, gatewayUse, tlsServer):
     print("\n---------- Creating users configuration ----------\n")
     servRoute = False
-    addrHost = input("Enter server URL or IP address: ")
+    
+    #zadání ip adresy serveru
+    ip = True
+    while ip:
+        addrHost = input("Enter server URL or IP address: ")
+        try:
+            # Zkontroluje, zda je zadaný text platnou IP adresou 
+            ipaddress.ip_address(addrHost)
+            ip = False
+        except ValueError:
+            #pokud ne, tak se input spustí znovu
+            print(f"Invalid IP address: {addrHost}")
 
     if gatewayUse == "y":
         while servRoute == False:
