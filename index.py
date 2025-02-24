@@ -484,9 +484,9 @@ def advancedConf(serverName):
             #pokud neodpovídá ip a masce požádá to znova o vyplnění
             print("Wrong format! Please enter in 'address mask' format.")  
 
-    # otázka na TLS-server
+    
     print("Do you want TLS-SERVER? [yes/no]")
-    tlsServer = inputQuestion() #spustí se funkce na získání odpovědi y/n
+    tlsServer = inputQuestion() #spustí se funkce na získání odpovědi y/n, která se zapíše do proměné
 
     if device in ("tap", "tap0"): #kontrola zda inter. není tap nebo tap0 (v tomto případě není topologie potřeba)
         pass
@@ -503,29 +503,31 @@ def advancedConf(serverName):
             except ValueError as errorTopo:
                 print(errorTopo)
 
+
     print("Do you want allow CLIENT-TO-CLIENT communication? [yes/no]")
-    ctoc = inputQuestion()
+    ctoc = inputQuestion() #spustí se funkce na získání odpovědi y/n, která se zapíše do proměné
 
     print("Do you want allow DUPLICATE-CN? [yes/no]")
-    dupCN = inputQuestion()
+    dupCN = inputQuestion() #spustí se funkce na získání odpovědi y/n, která se zapíše do proměné
 
     print("Do you want PING-TIMER-REM? [yes/no]")
-    pingT = inputQuestion()
+    pingT = inputQuestion() #spustí se funkce na získání odpovědi y/n, která se zapíše do proměné
 
-    verbLevl = inputNumber()
+    verbLevl = inputNumber() #spustí se funce k získání hodnoty pro logování
 
 
     print("Do you want to add CIPHER [yes/no]")
-    cipherUse = inputQuestion()
+    cipherUse = inputQuestion() #spustí se funkce na získání odpovědi y/n, která se zapíše do proměné
 
     print("Do you want add specific gateway (push route-gateway)")
-    gatewayUse = inputQuestion()
+    gatewayUse = inputQuestion() #spustí se funkce na získání odpovědi y/n, která se zapíše do proměné
 
     if gatewayUse == "y":
         gateway = '.'.join(address.split('.')[:-1]+["1"])  
     else:
         pass
 
+    #
     print("Do you want to redirect all trafict throught the VPN? (Full Tunnel) [yes/no]")
     redirectGateway = inputQuestion()
     if redirectGateway == "y" or redirectGateway == "yes":
@@ -551,7 +553,7 @@ def advancedConf(serverName):
             pushCheck = False
             while pushCheck == False:
                 try:
-                    lanPush = input("Push (format: 'address mask'): ")
+                    lanPush = input("Push route (format: 'address mask'): ")
                     lanAddress, lanMask = lanPush.split()
                     ipaddress.IPv4Network(f"{lanAddress}/{lanMask}", strict=False)
                     pushCheck = True
