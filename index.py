@@ -71,6 +71,7 @@ def vars_rewrite():
     rsaCountry=input(str("Country [XX]:"))
     while countryLetters:
         charCountCountry=len(rsaCountry)
+        #Počítá zda je počet znaků dva nebo nula
         if charCountCountry == 2:
             countryLetters = False
         elif charCountCountry == 0:
