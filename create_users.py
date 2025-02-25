@@ -198,25 +198,26 @@ def addCert(username):
 #---------------------------------------------------------------------------------
 #--------------------------------- Main Code -------------------------------------
 #---------------------------------------------------------------------------------
-#kontroluje, zda má uživatel rootovská oprávnění
-if os.geteuid() == 0:
-    #if os.path.isfile('/etc/openvpn/users') and os.path.isfile('/etc/openvpn/easy-rsa/pki'):
-        add = True
-        while add:
-            #výběr typu přidání uživatele
 
-            print("\nChoose between creating only one client (1) or creating multiple users (2) via csv file")
-            print("Singleuser -> 1 \nMultiuser -> 2")
-            howAdd = str(input("Do you want add single user or add via csv multiuser? (1 or 2)"))
+isActive = subprocess.run(["systemctl", "is-active", "openvpn-server@server"], capture_output=True, text=True) #kontrola zda je openvpn aktivní
+#kontroluje, zda má uživatel rootovská oprávnění a zda je openvpn aktivní
+if os.geteuid() == 0 and isActive.stdout.strip() == "active":
+    add = True
+    while add:
+        #výběr typu přidání uživatele
 
-            if howAdd == "1": #Spustí přidání jednoho uživatele
-                oneClient()
-                add = False
-            elif howAdd == "2": #Spustí přidání více uživatelů pomocí csv
-                csvAdd()
-                add = False
-            else:
-                print("Wrong value! Write 1 or 2.")
+        print("\nChoose between creating only one client (1) or creating multiple users (2) via csv file")
+        print("Singleuser -> 1 \nMultiuser -> 2")
+        howAdd = str(input("Do you want add single user or add via csv multiuser? (1 or 2)"))
+
+        if howAdd == "1": #Spustí přidání jednoho uživatele
+            oneClient()
+            add = False
+        elif howAdd == "2": #Spustí přidání více uživatelů pomocí csv
+             csvAdd()
+            add = False
+        else:
+            print("Wrong value! Write 1 or 2.")
         
 else:
     print("ERROR: You need sudo rights!")
