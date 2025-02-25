@@ -204,6 +204,8 @@ if os.geteuid() == 0:
         add = True
         while add:
             #výběr typu přidání uživatele
+
+            print("\nChoose between creating only one client (1) or creating multiple users (2) via csv file")
             print("Singleuser -> 1 \nMultiuser -> 2")
             howAdd = str(input("Do you want add single user or add via csv multiuser? (1 or 2)"))
 
