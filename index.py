@@ -300,6 +300,7 @@ def easyConf(serverName):
             #pokud je tam něco jiného ne předchozí hodnoty automaticky se nastaví tun0
             device = "tun0"
             print("Invalid device, default tun0 is set.")
+            deviceCheck = False
 
     #zadání a kontrola rozsahu IP adres
     while networkCheck == False:
@@ -472,6 +473,7 @@ def advancedConf(serverName):
             #pokud je tam něco jiného ne předchozí hodnoty automaticky se nastaví tun0
             device = "tun0"
             print("Invalid device, default tun0 is set.")
+            deviceCheck = False
 
     #zadání a kontrola rozsahu IP adres
     while networkCheck == False:
@@ -725,6 +727,8 @@ def setRights(device):
     device = re.sub(r'\d+', '', device)
     os.system(f"chown openvpn:openvpn /dev/net/{device}")
     os.system(f"chmod 0666 /dev/net/{device}")
+    #nastavení oprávnění na složku users, kde jsou privátní klíče uživatelů
+    os.system(f"chmod 770 /etc/openvpn/users/")
 
 def setRouting():
     print("\n---------- SELinux setup and routing ----------")
