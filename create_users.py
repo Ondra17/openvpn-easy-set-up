@@ -214,7 +214,7 @@ if os.geteuid() == 0 and isActive.stdout.strip() == "active":
             oneClient()
             add = False
         elif howAdd == "2": #Spustí přidání více uživatelů pomocí csv
-             csvAdd()
+            csvAdd()
             add = False
         else:
             print("Wrong value! Write 1 or 2.")
