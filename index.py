@@ -18,9 +18,11 @@ def installation():
 # kontrola, zda se openvpn stáhlo správně
 def check_openvpn():
     try:
-        result = subprocess.run(["openvpn", "--version"], text=True)
-        if result.returncode == 0:
+        result = subprocess.run(["openvpn", "--version"], text=True) #do result se vypíše, zda příkaz proběhl v pořádku
+        if result.returncode == 0: #když proběhl v pořádku, tak je openvpn stažený
             print(f"OpenVPN is installed")
+
+        #pokud se vyskytne nějaká chyba, tak se script vypne
         else:
             print(f"OpenVPN command failed")
             sys.exit(1)
@@ -169,10 +171,9 @@ def server_cert_gen(CA_dir, serverName):
 
     try:
         print("\n---------- Generating new server certificate ----------\n")
-        os.chdir("/etc/openvpn/easy-rsa")
         os.chdir(CA_dir)
 
-        #Spuštění generování s jménem, s hodnotou,k terou uživatel zadal
+        #Spuštění generování s jménem, s hodnotou,k terou uživatel zadal ve složce easy-rsa
         process = subprocess.Popen(
             ["./easyrsa", "gen-req", serverName, "nopass"],
             stdin=subprocess.PIPE,
