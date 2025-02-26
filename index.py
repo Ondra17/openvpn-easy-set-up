@@ -1,10 +1,9 @@
-import glob
+#import glob
 import subprocess
 import re
 import os
 import sys
 import ipaddress
-import re
 
 
 def installation():
