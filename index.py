@@ -377,13 +377,13 @@ def usrConfEasy(port, protocol, device): #hodnoty ze serverové konfigurace
 
 #funkce na kontrolu inputů zda je odpověĎ yes/y nebo no/n
 def inputQuestion():
-    check = False
-    while check == False:
+    check = True
+    while check:
         try:
             qes = input("Type yes or no: ").strip().lower()
             if qes not in ['yes', 'no', 'y', 'n']: #kontrol zda je odpověď v špatném formátu
                 raise ValueError("Invalid input. Please type 'yes' or 'no'.")
-            check = True
+            check = False
             if qes == "yes" or qes == "y": #pokud je odpovědď yes/y tak se nastaví na y
                 qes = "y"
             else: #jinka se nastaví na n
