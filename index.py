@@ -682,7 +682,6 @@ def usrConfAdv(port, protocol, device, cipher, tlsServer):
         else:
             file.write("client\n")
         file.write(f"remote {addrHost} {port}\n")
-        file.write(f"dev {device}\n")
         if device in ("tap", "tap0"):
             file.write(f"dev {device}-server\n")
         else:
