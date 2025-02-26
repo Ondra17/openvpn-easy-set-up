@@ -708,8 +708,11 @@ def server_name_input():
     print("\n---------- Enter Server Name for server certificate ----------")
     Name = None
     run = True
-    while run == True:
-        if Name == None:
+    while run:
+        if Name == "":
+            print("Server name cannot be empty. Please enter a valid name.")
+            Name=input("Server Name:")
+        elif Name == None: #Name nesmí být prázdné
             Name=input("Server Name:")
         else:
             run = False
