@@ -4,13 +4,13 @@ import subprocess
 import pandas
 import re
 
-#funkce na kontrolu inputů zda je odpověĎ yes/y nebo no/n
+#funkce na kontrolu inputů, zda je odpověď yes/y nebo no/n
 def inputQuestion():
     check = True
     while check:
         try:
             qes = input("Type yes or no: ").strip().lower()
-            if qes not in ['yes', 'no', 'y', 'n']: #kontrol zda je odpověď v špatném formátu
+            if qes not in ['yes', 'no', 'y', 'n']: #kontrol, zda je odpověď v špatném formátu
                 raise ValueError("Invalid input. Please type 'yes' or 'no'.")
             check = False
             if qes == "yes" or qes == "y": #pokud je odpovědď yes/y tak se nastaví na y
@@ -26,7 +26,7 @@ def oneClient():
 
     username = str(input("Enter Client Name:")) #jméno klienta, podle toho se bude jmenovat složka a certifikát
 
-    print("Common Name same as Client Name?") #input zda může být common name stejné jako client name
+    print("Common Name same as Client Name?") #požadavek, zda může být common name stejné jako client name
     nameQes = inputQuestion()
 
     #může být stejné
@@ -46,7 +46,7 @@ def oneClient():
     #nemůže být stejné
     elif nameQes == "n":
         
-        commonName = input("Enter Common Name: ") #input pro zadání common name
+        commonName = input("Enter Common Name: ") #požadavek pro zadání common name
 
         try:
             os.chdir("/etc/openvpn/easy-rsa")
@@ -85,13 +85,13 @@ def csvAdd():
     while path:
         #požadavek pro napsání cesty k csv
         csvPath = input("Write path to a cvs file:")
-        if os.path.isfile(csvPath): #kontrola zda csv existuje
+        if os.path.isfile(csvPath): #kontrola, zda csv existuje
 
             #načtení dat z csv
             data = pandas.read_csv(csvPath, delimiter=";", encoding='utf-8')
             data = data.dropna(how='all')
 
-            #input pro stejný username jako common name
+            #požadavek pro stejný username jako common name
             print("Common Name same as Client Name?")
             nameQes = inputQuestion()
             
@@ -176,7 +176,7 @@ def createStruc(username):
     os.system(f"sudo ./easyrsa sign-req client {username}") #podepsání certifikátu
     os.system(f"mkdir -p /etc/openvpn/users/{username}") #vytvoření složky dle uživatelsky zadaného jména
 
-    if os.path.isdir(f"/etc/openvpn/users/{username}"): #kontrola zda existuje složka klienta
+    if os.path.isdir(f"/etc/openvpn/users/{username}"): #kontrola, zda existuje složka klienta
 
         
         cmds = [
@@ -213,8 +213,8 @@ def addCert(username):
 #--------------------------------- Main Code -------------------------------------
 #---------------------------------------------------------------------------------
 
-isActive = subprocess.run(["systemctl", "is-active", "openvpn-server@server"], capture_output=True, text=True) #kontrola zda je openvpn aktivní
-#kontroluje, zda má uživatel rootovská oprávnění a zda je openvpn aktivní
+isActive = subprocess.run(["systemctl", "is-active", "openvpn-server@server"], capture_output=True, text=True) #kontrola, zda je openvpn aktivní
+#kontroluje, zda má uživatel rootovská oprávnění, a zda je openvpn aktivní
 if os.geteuid() == 0 and isActive.stdout.strip() == "active":
     add = True
     while add:
