@@ -6,13 +6,13 @@ import re
 
 #funkce na kontrolu inputů zda je odpověĎ yes/y nebo no/n
 def inputQuestion():
-    check = False
-    while check == False:
+    check = True
+    while check:
         try:
             qes = input("Type yes or no: ").strip().lower()
             if qes not in ['yes', 'no', 'y', 'n']: #kontrol zda je odpověď v špatném formátu
                 raise ValueError("Invalid input. Please type 'yes' or 'no'.")
-            check = True
+            check = False
             if qes == "yes" or qes == "y": #pokud je odpovědď yes/y tak se nastaví na y
                 qes = "y"
             else: #jinka se nastaví na n
@@ -59,8 +59,19 @@ def oneClient():
         except subprocess.CalledProcessError as e:
             print(f"Certificate creation error: {e}")
 
-    createStruc(username)
-    addCert(username)
+    #ověření, zda se vytvořil klíč
+    if os.path.isfile(f"/etc/openvpn/easy-rsa/pki/private/{username}.key"):
+        createStruc(username)
+    else:
+        print("The private key has not been created!")
+        sys.exit(1)
+
+    #ověření, zda se certifikát přesunul do uživatelské složky
+    if os.path.isfile(f"/etc/openvpn/users/{username}/{username}.crt"):
+        addCert(username)
+    else:
+        print("ERROR! Certificate and key did not copied.")
+
     
     #komprimace souborů uživatele do ZIP
     os.chdir(f"/etc/openvpn/users/{username}")
@@ -112,8 +123,6 @@ def csvAdd():
                             except subprocess.CalledProcessError as e:
                                 print(f"Certificate creation error: {e}")
 
-                            createStruc(username)
-                            addCert(username)
                             
                         elif nameQes == "n": #pokud má být commmon name zadán ručně
                             
@@ -136,10 +145,15 @@ def csvAdd():
 
                             except subprocess.CalledProcessError as e:
                                 print(f"Certificate creation error: {e}")
-                                
-                        createStruc(username)
 
-                        #kontrola zda byl certifikát vytvořen úspěšně
+                        #ověření, zda se vytvořil klíč
+                        if os.path.isfile(f"/etc/openvpn/easy-rsa/pki/private/{username}.key"):
+                            createStruc(username)
+                        else:
+                            print("The private key has not been created!")
+                            sys.exit(1)
+
+                        #ověření, zda se certifikát přesunul do uživatelské složky
                         if os.path.isfile(f"/etc/openvpn/users/{username}/{username}.crt"):
                             addCert(username)
                         else:
