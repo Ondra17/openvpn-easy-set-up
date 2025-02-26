@@ -69,7 +69,7 @@ def varsModify(prompt, default="NA"):
 def vars_rewrite():
     countryLetters = True
     print("\n------------ Modify vars file ------------")
-    #input pro hodnotu Country
+    #požadavek pro hodnotu Country
     rsaCountry=input(str("Country [XX]:"))
     while countryLetters:
         charCountCountry=len(rsaCountry)
@@ -256,7 +256,7 @@ def easyConf(serverName):
 
     portCheck = True
     while portCheck == True:
-        port = input("Port number?(default openvpn 1194)").strip() #input na zadání čísla portu
+        port = input("Port number?(default openvpn 1194)").strip() #požadavek na zadání čísla portu
         if port == "": 
             #když je prázdný nastaví se na 1194
             port = "1194"
@@ -305,7 +305,7 @@ def easyConf(serverName):
     #zadání a kontrola rozsahu IP adres
     while networkCheck == False:
         try:
-            network = input("Network (format: 'address mask'): ") #input na vložení ip adresy a masky
+            network = input("Network (format: 'address mask'): ") #požadavek na vložení ip adresy a masky
             address, mask = network.split() #rozdělení adresy a masky
             ipaddress.IPv4Network(f"{address}/{mask}", strict=False) #kontrolo zda je to IP adresa a maska
             networkCheck = True
@@ -394,11 +394,11 @@ def inputQuestion():
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 
-#input na hodnotu obsahu logovacích souborů
+#požadavek na hodnotu obsahu logovacích souborů
 def inputNumber():
     while True:
         try:
-            #input na vložení čísla
+            #požadavek na vložení čísla
             num = int(input("Level of LOGGING [0-11]: ").strip())
             if 0 <= num <= 11: #kontrola zda je to číslo mezi 0 a 11 včetně
                 return num
@@ -429,7 +429,7 @@ def advancedConf(serverName):
 
     portCheck = True
     while portCheck == True:
-        port = input("Port number?(default openvpn 1194)").strip() #input na zadání čísla portu
+        port = input("Port number?(default openvpn 1194)").strip() #požadavek na zadání čísla portu
         if port == "": 
             #když je prázdný nastaví se na 1194
             port = "1194"
@@ -478,7 +478,7 @@ def advancedConf(serverName):
     #zadání a kontrola rozsahu IP adres
     while networkCheck == False:
         try:
-            network = input("Network (format: 'address mask'): ") #input na vložení ip adresy a masky
+            network = input("Network (format: 'address mask'): ") #požadavek na vložení ip adresy a masky
             address, mask = network.split() #rozdělení adresy a masky
             ipaddress.IPv4Network(f"{address}/{mask}", strict=False) #kontrolo zda je to IP adresa a maska
             networkCheck = True
@@ -496,7 +496,7 @@ def advancedConf(serverName):
         topoCheck = False
         while topoCheck == False:
             try:
-                #input na zadání hodnoty 1 až 4 včetně
+                #požadavek na zadání hodnoty 1 až 4 včetně
                 topology = int(input("Do you want add type of topology? (subnet[1] / p2p[2] / net30[3] / skip[4]):"))
                 if topology not in [1, 2, 3, 4]: #pokud není správná hodnota, spustí se znovu input
                     raise ValueError("Invalid input. Please type 1 / 2 / 3 / 4.")
@@ -562,7 +562,7 @@ def advancedConf(serverName):
 
             while dnsCheck:
                 try:
-                    dns = input("DNS server address (format: 'address'): ") #input pro vložení DNS adresy
+                    dns = input("DNS server address (format: 'address'): ") #požadavek pro vložení DNS adresy
                     ipaddress.IPv4Network(f"{dns}", strict=False) #kontrola zda se jedná o ip adresu
                     dnsCheck = False
                     dnsCheckAdd = True
@@ -814,7 +814,7 @@ if os.geteuid() == 0: #Kontroluje zda má uživatel root oprávnění
 
             confCheck = True
             while confCheck:
-                confQues = input("Write 1 or 2:") #input pro výběr konfigurace
+                confQues = input("Write 1 or 2:") #požadavek pro výběr konfigurace
                 if confQues.strip() == "": #kontrola zda proměná není prázdná
                     print("Invalid input! Please enter 1 or 2.")
                 elif confQues == "1" or confQues == "2":
