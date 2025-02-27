@@ -338,6 +338,7 @@ def easyConf(serverName):
         file.write("persist-key\n")
         file.write("keepalive 10 120\n")
         file.write("verb 3\n")
+        file.write("topology subnet")
         file.write("status /var/log/ovpn-status.log\n")
         file.write("log /var/log/ovpn.log")
 
@@ -497,16 +498,16 @@ def advancedConf(serverName):
     tlsServer = inputQuestion() #spustí se funkce na získání odpovědi y/n, a zapíše do proměné
 
     if device in ("tap", "tap0"): #kontrola zda inter. není tap nebo tap0 (v tomto případě není topologie potřeba)
-        pass
+        pass #pro tap je vždy volen device p2p
     else:
         #výběr typu topologie
         topoCheck = False
         while topoCheck == False:
             try:
-                #požadavek na zadání hodnoty 1 až 4 včetně
-                topology = int(input("Do you want add type of topology? (subnet[1] / p2p[2] / net30[3] / skip[4]):"))
-                if topology not in [1, 2, 3, 4]: #pokud není správná hodnota, spustí se znovu input
-                    raise ValueError("Invalid input. Please type 1 / 2 / 3 / 4.")
+                #požadavek na zadání hodnoty 1 až 3 včetně
+                topology = int(input("Do you want add type of topology? (subnet[1] / net30[2] / skip[3]):"))
+                if topology not in [1, 2, 3]: #pokud není správná hodnota, spustí se znovu input
+                    raise ValueError("Invalid input. Please type 1 / 2 / 3 .")
                 topoCheck = True
             except ValueError as errorTopo:
                 print(errorTopo)
@@ -604,10 +605,8 @@ def advancedConf(serverName):
             if topology == 1:
                 file.write(f"topology subnet\n")
             elif topology == 2:
-                file.write(f"topology p2p\n")
-            elif topology == 3:
                 file.write(f"topology net30\n")
-            elif topology == 4:
+            elif topology == 3:
                 pass
             
         file.write(f"server {network}\n")
