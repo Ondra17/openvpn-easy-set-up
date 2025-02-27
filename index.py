@@ -265,7 +265,11 @@ def easyConf(serverName):
             #kontrola zda je port číslo, pokud ne vrátí se to zpět na input
             try:
                 port = int(port)
-                portCheck = False
+                #kontrola zda se jedná o port, který existuje
+                if 0 <= port <= 65535:
+                    portCheck = False
+                else:
+                    print("Invalid port! Enter a number between 0 and 65535.")
             except ValueError:
                 print("Invalid input! Please enter a valid port number.")
 
@@ -278,7 +282,7 @@ def easyConf(serverName):
             protocol = "udp"
             print("Default UDP is set.")
             protocolCheck = False
-        elif protocol in ("udp", "tcp"): #pokud je hodnota tcp nebo udp tak se nechá
+        elif protocol in ("udp", "tcp", "udp4", "udp6", "tcp4", "tcp6"): #pokud je hodnota tcp/tcpX nebo udp/udpX tak se nechá
             protocolCheck = False
         else:
             #pokud je tam něco jiného než udp/tcp automaticky se nastaví na udp
@@ -438,7 +442,11 @@ def advancedConf(serverName):
             #kontrola zda je port číslo, pokud ne vrátí se to zpět na input
             try:
                 port = int(port)
-                portCheck = False
+                #kontrola zda se jedná o port, který existuje
+                if 0 <= port <= 65535:
+                    portCheck = False
+                else:
+                    print("Invalid port! Enter a number between 0 and 65535.")
             except ValueError:
                 print("Invalid input! Please enter a valid port number.")
 
@@ -451,7 +459,7 @@ def advancedConf(serverName):
             protocol = "udp"
             print("Default UDP is set.")
             protocolCheck = False
-        elif protocol in ("udp", "tcp"): #pokud je hodnota tcp nebo udp tak se nechá
+        elif protocol in ("udp", "tcp", "udp4", "udp6", "tcp4", "tcp6"): #pokud je hodnota tcp/tcpX nebo udp/udpX tak se nechá
             protocolCheck = False
         else:
             #pokud je tam něco jiného než udp/tcp automaticky se nastaví na udp
