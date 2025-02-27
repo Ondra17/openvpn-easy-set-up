@@ -202,7 +202,11 @@ def csvAdd():
 
 def createStruc(username):
     os.system(f"sudo ./easyrsa sign-req client {username}") #podepsání certifikátu
-    os.system(f"mkdir -p /etc/openvpn/users/{username}") #vytvoření složky dle uživatelsky zadaného jména
+    if os.path.isfile(f"/etc/openvpn/easy-rsa/pki/issued/{username}.crt"):
+        os.system(f"mkdir -p /etc/openvpn/users/{username}") #vytvoření složky dle uživatelsky zadaného jména
+    else:
+        print("User certificate has not been signed!")
+        sys.exit(1)
 
     if os.path.isdir(f"/etc/openvpn/users/{username}"): #kontrola, zda existuje složka klienta
 
