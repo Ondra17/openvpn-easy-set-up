@@ -24,7 +24,15 @@ def inputQuestion():
 #funkce na vytvoření jednoho klientského certifikátu
 def oneClient():
 
-    username = str(input("Enter Client Name:")) #jméno klienta, podle toho se bude jmenovat složka a certifikát
+
+    isUsername = True
+    while isUsername:
+        username = str(input("Enter Client Name:")).strip() #jméno klienta, podle toho se bude jmenovat složka a certifikát
+        if username == "": #kontrola, zda je nastavena nějaká hodnota
+            print("Client name must be set!")
+            isUsername = True
+        else:
+            isUsername = False
 
     print("Common Name same as Client Name?") #požadavek, zda může být common name stejné jako client name
     nameQes = inputQuestion()
@@ -46,7 +54,15 @@ def oneClient():
     #nemůže být stejné
     elif nameQes == "n":
         
-        commonName = input("Enter Common Name: ") #požadavek pro zadání common name
+        isClientName = True
+        while isClientName:
+            commonName = input("Enter Common Name: ").strip() #požadavek pro zadání common name
+            if commonName == "": #kontrola, zda je nastavena nějaká hodnota
+                print("Common name must be set!")
+                isClientName = True
+            else:
+                isClientName = False
+        
 
         try:
             os.chdir("/etc/openvpn/easy-rsa")
@@ -126,7 +142,14 @@ def csvAdd():
                             
                         elif nameQes == "n": #pokud má být commmon name zadán ručně
                             
-                            commonName = str(input("Enter Common Name: ")) #požadavek na common name
+                            isClientName = True
+                            while isClientName:
+                                commonName = input("Enter Common Name: ").strip() #požadavek pro zadání common name
+                                if commonName == "": #kontrola, zda je nastavena nějaká hodnota
+                                    print("Common name must be set!")
+                                    isClientName = True
+                                else:
+                                    isClientName = False
 
                             try:
                                 os.chdir("/etc/openvpn/easy-rsa")
