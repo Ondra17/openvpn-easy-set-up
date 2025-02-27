@@ -828,19 +828,19 @@ if os.geteuid() == 0: #Kontroluje zda má uživatel root oprávnění
                     print("Invalid input! Please enter 1 or 2.")
 
 
-                if confQues == "1" and not os.path.isfile("etc/openvpn/client.ovpn"): #spuštění pro jednoduchou konfiguraci
+                if confQues == "1" and not os.path.isfile("/etc/openvpn/client.ovpn"): #spuštění pro jednoduchou konfiguraci
                     port, protocol, device = easyConf(serverName)
                     usrConfEasy(port, protocol, device)
                     run = False
-                elif confQues == "2" and not os.path.isfile("etc/openvpn/client.ovpn"): #spuštění pro pokročilou konfiguraci
+                elif confQues == "2" and not os.path.isfile("/etc/openvpn/client.ovpn"): #spuštění pro pokročilou konfiguraci
                     port, protocol, device, cipherUse, tlsServer, redirectGateway = advancedConf(serverName)
                     usrConfAdv(port, protocol, device, cipherUse, tlsServer)
+                    setRouting()
                     run = False
                 else: 
                     print("Cofigurations already exist!")
+                    run = False
 
-    if confQues == "2":
-        setRouting()
                     
     elif serverName is None: 
         print("You must enter Server Name!")
