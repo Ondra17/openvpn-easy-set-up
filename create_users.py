@@ -21,6 +21,8 @@ def inputQuestion():
             print(e)
     return qes #vrácení odpovědi
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------    
+
 #funkce na vytvoření jednoho klientského certifikátu
 def oneClient():
 
@@ -93,6 +95,7 @@ def oneClient():
     os.chdir(f"/etc/openvpn/users/{username}")
     os.system(f"zip -r ovpn_{username} *")
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------    
 
 #přidávání uživatelů pomocí csv
 def csvAdd():
@@ -195,6 +198,8 @@ def csvAdd():
         else:
             print("This path to csv is not existing!")
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------    
+
 def createStruc(username):
     os.system(f"sudo ./easyrsa sign-req client {username}") #podepsání certifikátu
     os.system(f"mkdir -p /etc/openvpn/users/{username}") #vytvoření složky dle uživatelsky zadaného jména
@@ -217,6 +222,8 @@ def createStruc(username):
 
     else:
         print("User certificates were not copied!")    
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------    
 
 #vkládání certifikátů a privátního klíče do konfiurace
 def addCert(username):
